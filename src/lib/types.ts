@@ -18,7 +18,7 @@ export type Task = {
   priority: Priority;
 };
 
-export type Mood = "Happy" | "Calm" | "Sad" | "Excited";
+export type Mood = "Happy" | "Calm" | "Sad" | "Excited" | "Anxious";
 
 export type JournalEntry = {
   id: string;
