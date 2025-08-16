@@ -59,7 +59,7 @@ export default function AffirmationsClient() {
           New Affirmation
         </Button>
         <Button onClick={toggleFavorite} variant={isFavorite ? 'secondary' : 'ghost'} size="icon">
-          <Heart className={`w-6 h-6 ${isFavorite ? 'text-red-500 fill-current' : ''}`} />
+          <Heart className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : ''}`} />
           <span className="sr-only">Favorite</span>
         </Button>
       </div>
