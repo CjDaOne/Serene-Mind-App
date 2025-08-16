@@ -45,9 +45,9 @@ export default function AffirmationsClient() {
         <p className="text-muted-foreground">Start your day with a positive mindset.</p>
       </div>
 
-      <Card className="w-full max-w-2xl bg-primary/10 border-primary/20">
+      <Card className="w-full max-w-2xl bg-primary/20 border-primary/30">
         <CardContent className="p-8 flex flex-col items-center gap-6">
-          <p className="text-2xl font-semibold text-primary-foreground/90">
+          <p className="text-2xl font-semibold text-primary-foreground">
             "{affirmations[currentAffirmationIndex]}"
           </p>
         </CardContent>
