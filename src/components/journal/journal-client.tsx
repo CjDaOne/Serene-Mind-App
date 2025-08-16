@@ -50,12 +50,21 @@ export default function JournalClient() {
   };
 
   const handleGetInsights = async () => {
+    if (!newEntryContent.trim()) {
+      toast({
+        title: 'Text is empty',
+        description: 'Please write something in your journal entry to get insights.',
+        variant: 'destructive',
+      });
+      return;
+    }
     setIsLoadingInsights(true);
+    setInsightsSheetOpen(true);
     try {
-      const allEntriesText = journalEntries.map(e => `[${e.date.toISOString().split('T')[0]} - ${e.mood}]: ${e.content}`).join('\n\n');
-      const result = await getJournalInsights({ journalEntries: allEntriesText });
+      // Use the current text entry for insights
+      const currentEntryText = `[${new Date().toISOString().split('T')[0]} - ${selectedMood}]: ${newEntryContent}`;
+      const result = await getJournalInsights({ journalEntries: currentEntryText });
       setInsights(result.insights);
-      setInsightsSheetOpen(true);
     } catch (error) {
       toast({ title: 'Error', description: 'Could not fetch AI insights.', variant: 'destructive' });
       setInsightsSheetOpen(false);
@@ -158,7 +167,7 @@ export default function JournalClient() {
           <SheetContent className="w-full sm:max-w-lg">
             <SheetHeader>
               <SheetTitle>AI Journal Insights</SheetTitle>
-              <SheetDescription>Here are some patterns and insights from your entries.</SheetDescription>
+              <SheetDescription>Here are some patterns and insights from your current entry.</SheetDescription>
             </SheetHeader>
             <Separator className="my-4" />
             <div className="prose prose-sm dark:prose-invert">
