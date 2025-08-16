@@ -45,9 +45,9 @@ export default function AffirmationsClient() {
         <p className="text-muted-foreground">Start your day with a positive mindset.</p>
       </div>
 
-      <Card className="w-full max-w-2xl bg-primary/20 border-primary/30">
+      <Card className="w-full max-w-2xl bg-primary/10 border-primary/20">
         <CardContent className="p-8 flex flex-col items-center gap-6">
-          <p className="text-2xl font-semibold text-primary-foreground">
+          <p className="text-2xl font-semibold text-primary">
             "{affirmations[currentAffirmationIndex]}"
           </p>
         </CardContent>
@@ -59,7 +59,7 @@ export default function AffirmationsClient() {
           New Affirmation
         </Button>
         <Button onClick={toggleFavorite} variant={isFavorite ? 'secondary' : 'ghost'} size="icon">
-          <Heart className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : ''}`} />
+          <Heart className={`w-6 h-6 transition-colors ${isFavorite ? 'text-red-500 fill-current' : 'text-primary/50'}`} />
           <span className="sr-only">Favorite</span>
         </Button>
       </div>
