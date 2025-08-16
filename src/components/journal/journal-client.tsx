@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Annoyed, Frown, Loader2, Meh, Smile, Wand2, Star } from 'lucide-react';
+import { Frown, Loader2, Meh, Smile, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getJournalInsights } from '@/ai/flows/journal-insights';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
@@ -20,7 +20,6 @@ const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
   { value: 'Excited', icon: Star, color: 'text-yellow-500' },
   { value: 'Calm', icon: Meh, color: 'text-blue-500' },
   { value: 'Sad', icon: Frown, color: 'text-gray-500' },
-  { value: 'Anxious', icon: Annoyed, color: 'text-purple-500' },
 ];
 
 export default function JournalClient() {
@@ -84,11 +83,11 @@ export default function JournalClient() {
             <CardContent className="space-y-4">
               <div>
                 <Label className="mb-2 block">Select your mood</Label>
-                <RadioGroup value={selectedMood} onValueChange={(value: Mood) => setSelectedMood(value)} className="flex gap-2">
+                <RadioGroup value={selectedMood} onValueChange={(value: Mood) => setSelectedMood(value)} className="flex items-center justify-around gap-2">
                   {moodOptions.map(({ value, icon: Icon, color }) => (
-                    <Label key={value} htmlFor={value} className="flex-1">
+                    <Label key={value} htmlFor={value}>
                       <RadioGroupItem value={value} id={value} className="sr-only" />
-                       <div className={`p-3 rounded-lg border-2 flex flex-col items-center gap-2 cursor-pointer transition-colors ${selectedMood === value ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-secondary'}`}>
+                       <div className={`p-3 rounded-lg border-2 flex flex-col items-center gap-2 cursor-pointer transition-colors w-20 h-20 justify-center ${selectedMood === value ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-secondary'}`}>
                         <Icon className={`w-8 h-8 ${selectedMood === value ? 'text-primary' : color}`}/>
                         <span className="text-xs font-medium">{value}</span>
                       </div>
