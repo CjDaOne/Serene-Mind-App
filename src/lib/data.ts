@@ -8,6 +8,7 @@ export const MOCK_TASKS: Task[] = [
     description: 'Start the day with 10 minutes of meditation.',
     completed: false,
     dueDate: new Date(new Date().setDate(new Date().getDate() + 1)),
+    priority: 'High',
     subtasks: [
       { id: '1-1', title: 'Find a quiet space', completed: true },
       { id: '1-2', title: 'Choose a guided meditation', completed: false },
@@ -20,6 +21,7 @@ export const MOCK_TASKS: Task[] = [
     description: 'Spend an hour away from all screens.',
     completed: true,
     dueDate: new Date(new Date().setDate(new Date().getDate() - 1)),
+    priority: 'Medium',
     subtasks: [],
   },
   {
@@ -28,6 +30,7 @@ export const MOCK_TASKS: Task[] = [
     description: 'Outline key objectives for the upcoming week.',
     completed: false,
     dueDate: new Date(new Date().setDate(new Date().getDate() + 2)),
+    priority: 'Medium',
     subtasks: [],
   },
     {
@@ -36,6 +39,7 @@ export const MOCK_TASKS: Task[] = [
     description: 'Engage in physical activity.',
     completed: false,
     dueDate: new Date(),
+    priority: 'Low',
     subtasks: [
         { id: '4-1', title: 'Warm-up', completed: false },
         { id: '4-2', title: 'Main exercise', completed: false },

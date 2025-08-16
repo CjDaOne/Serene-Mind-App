@@ -2,48 +2,51 @@
 
 import { useState } from 'react';
 import { MOCK_TASKS } from '@/lib/data';
-import type { Task, Subtask } from '@/lib/types';
+import type { Task, Priority } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Plus, Trash2, Wand2, Loader2, Calendar } from 'lucide-react';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import { Plus, Trash2, Wand2, Loader2, Calendar as CalendarIcon } from 'lucide-react';
 import { Input } from '../ui/input';
-import { Textarea } from '../ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { suggestSubtasks } from '@/ai/flows/suggest-subtasks';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '../ui/dialog';
+import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
+import { Calendar } from '../ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import Link from 'next/link';
 
 export default function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
-  const [isSheetOpen, setSheetOpen] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isSuggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeTaskForSuggestion, setActiveTaskForSuggestion] = useState<Task | null>(null);
 
+  const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskPriority, setNewTaskPriority] = useState<Priority>('Medium');
+  const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>(new Date());
+
   const { toast } = useToast();
 
-  const handleAddTask = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const title = formData.get('title') as string;
-    const description = formData.get('description') as string;
-    const dueDate = formData.get('dueDate') as string;
-
-    if (title) {
+  const handleAddTask = () => {
+    if (newTaskTitle.trim()) {
       const newTask: Task = {
         id: Date.now().toString(),
-        title,
-        description,
+        title: newTaskTitle,
         completed: false,
-        dueDate: dueDate ? new Date(dueDate) : new Date(),
+        dueDate: newTaskDueDate || new Date(),
+        priority: newTaskPriority,
         subtasks: [],
       };
       setTasks(prevTasks => [newTask, ...prevTasks]);
-      setSheetOpen(false);
-      toast({ title: "Task added!", description: `Successfully added "${title}"` });
+      setNewTaskTitle('');
+      setNewTaskPriority('Medium');
+      setNewTaskDueDate(new Date());
+      toast({ title: "Task added!", description: `Successfully added "${newTaskTitle}"` });
     }
   };
 
@@ -56,21 +59,6 @@ export default function TaskManager() {
     setTasks(prevTasks =>
       prevTasks.map(task =>
         task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
-
-  const toggleSubtaskCompletion = (taskId: string, subtaskId: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId
-          ? {
-              ...task,
-              subtasks: task.subtasks.map(subtask =>
-                subtask.id === subtaskId ? { ...subtask, completed: !subtask.completed } : subtask
-              ),
-            }
-          : task
       )
     );
   };
@@ -90,7 +78,7 @@ export default function TaskManager() {
   };
 
   const addSuggestedSubtasks = (task: Task, suggested: string[]) => {
-    const newSubtasks: Subtask[] = suggested.map(s => ({
+    const newSubtasks = suggested.map(s => ({
       id: `${task.id}-${Date.now()}-${Math.random()}`,
       title: s,
       completed: false,
@@ -102,75 +90,90 @@ export default function TaskManager() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
-      <div className="flex justify-between items-start">
-        <div>
-            <h1 className="text-3xl font-bold font-headline">Task Planner</h1>
-            <p className="text-muted-foreground">Organize your goals and stay on track.</p>
-        </div>
-        <Sheet open={isSheetOpen} onOpenChange={setSheetOpen}>
-          <SheetTrigger asChild>
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Task
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Add a new task</SheetTitle>
-              <SheetDescription>What do you want to accomplish?</SheetDescription>
-            </SheetHeader>
-            <form onSubmit={handleAddTask} className="mt-4 space-y-4">
-              <Input name="title" placeholder="Task Title" required />
-              <Textarea name="description" placeholder="Description (optional)" />
-              <Input name="dueDate" type="date" />
-              <Button type="submit" className="w-full">Add Task</Button>
-            </form>
-          </SheetContent>
-        </Sheet>
-      </div>
-
-      <Card>
-        <CardContent className="pt-6">
-          <Accordion type="multiple" className="space-y-4">
-            {tasks.map(task => (
-              <AccordionItem key={task.id} value={task.id} className="border rounded-lg bg-card p-0">
-                <div className="p-4 flex items-center gap-4">
-                  <Checkbox 
-                    id={`task-check-${task.id}`}
-                    checked={task.completed} 
-                    onCheckedChange={() => toggleTaskCompletion(task.id)}
-                    className="mt-1"
-                  />
-                  <AccordionTrigger className="flex-1 p-0 text-left hover:no-underline">
-                    <div className="flex-1">
-                      <p className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</p>
-                      <p className="text-sm text-muted-foreground flex items-center gap-1"><Calendar className="w-3 h-3"/> {task.dueDate.toLocaleDateString()}</p>
-                    </div>
-                  </AccordionTrigger>
-                   <Button variant="ghost" size="icon" onClick={() => handleSuggestSubtasks(task)} disabled={isSuggestionLoading && activeTaskForSuggestion?.id === task.id}>
-                    {isSuggestionLoading && activeTaskForSuggestion?.id === task.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task.id)}>
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
-                </div>
-                <AccordionContent className="px-4 pb-4">
-                    <div className="pl-8 space-y-2 border-l ml-2">
-                        {task.subtasks.map(subtask => (
-                            <div key={subtask.id} className="flex items-center gap-2 pl-4">
-                                <Checkbox id={`subtask-${subtask.id}`} checked={subtask.completed} onCheckedChange={() => toggleSubtaskCompletion(task.id, subtask.id)} />
-                                <label htmlFor={`subtask-${subtask.id}`} className={`text-sm ${subtask.completed ? 'line-through text-muted-foreground' : ''}`}>{subtask.title}</label>
+    <div className="flex flex-col items-center gap-8">
+      <Card className="w-full max-w-2xl">
+        <CardHeader className="text-center">
+            <CardTitle className="text-2xl font-bold">Your Tasks</CardTitle>
+        </CardHeader>
+        <CardContent>
+            <div className="flex flex-col sm:flex-row gap-2 mb-6">
+                <Input 
+                    placeholder="Add a new task..."
+                    value={newTaskTitle}
+                    onChange={(e) => setNewTaskTitle(e.target.value)}
+                    className="flex-grow"
+                />
+                <Select value={newTaskPriority} onValueChange={(v: Priority) => setNewTaskPriority(v)}>
+                    <SelectTrigger className="w-full sm:w-[120px]">
+                        <SelectValue placeholder="Priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="Low">Low</SelectItem>
+                        <SelectItem value="Medium">Medium</SelectItem>
+                        <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                </Select>
+                 <Popover>
+                    <PopoverTrigger asChild>
+                    <Button
+                        variant={"outline"}
+                        className={cn(
+                        "w-full sm:w-auto justify-start text-left font-normal",
+                        !newTaskDueDate && "text-muted-foreground"
+                        )}
+                    >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newTaskDueDate ? format(newTaskDueDate, "PPP") : <span>Pick a date</span>}
+                    </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                    <Calendar
+                        mode="single"
+                        selected={newTaskDueDate}
+                        onSelect={setNewTaskDueDate}
+                        initialFocus
+                    />
+                    </PopoverContent>
+                </Popover>
+                <Button onClick={handleAddTask} className="w-full sm:w-auto">Add Task</Button>
+            </div>
+            
+            <div className="space-y-4">
+                {tasks.length === 0 ? (
+                    <p className="text-muted-foreground text-center py-4">No tasks yet. Add one to get started!</p>
+                ) : (
+                    tasks.map(task => (
+                        <div key={task.id} className="flex items-center gap-4 p-2 rounded-lg border">
+                             <Checkbox 
+                                id={`task-check-${task.id}`}
+                                checked={task.completed} 
+                                onCheckedChange={() => toggleTaskCompletion(task.id)}
+                            />
+                            <div className="flex-1">
+                                <label htmlFor={`task-check-${task.id}`} className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</label>
+                                <p className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <CalendarIcon className="w-3 h-3"/> {task.dueDate.toLocaleDateString()}
+                                    <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
+                                    <span>{task.priority} Priority</span>
+                                </p>
                             </div>
-                        ))}
-                        {task.subtasks.length === 0 && <p className="text-sm text-muted-foreground pl-4">No subtasks yet.</p>}
-                    </div>
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task.id)}>
+                                <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                        </div>
+                    ))
+                )}
+            </div>
+
+            <div className="text-center mt-8">
+                <Button asChild size="lg" className="w-full max-w-sm">
+                    <Link href="/journal">Reflect on Your Day</Link>
+                </Button>
+                <p className="text-muted-foreground text-sm mt-2">A gentle space to note your thoughts, not a judgment.</p>
+            </div>
         </CardContent>
       </Card>
+      
       {activeTaskForSuggestion && (
          <Dialog open={suggestionDialogOpen} onOpenChange={setSuggestionDialogOpen}>
             <DialogContent>

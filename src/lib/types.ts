@@ -6,6 +6,8 @@ export type Subtask = {
   completed: boolean;
 };
 
+export type Priority = "Low" | "Medium" | "High";
+
 export type Task = {
   id:string;
   title: string;
@@ -13,6 +15,7 @@ export type Task = {
   completed: boolean;
   dueDate: Date;
   subtasks: Subtask[];
+  priority: Priority;
 };
 
 export type Mood = "Happy" | "Calm" | "Sad" | "Anxious" | "Excited";
