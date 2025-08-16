@@ -41,7 +41,7 @@ export default function LandingPage() {
               </Link>
             </Button>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
-               <img src="https://placehold.co/800x400.png" alt="App screenshot" className="rounded-lg object-cover w-full h-full" data-ai-hint="calm abstract" />
+               <img src="https://placehold.co/800x400.png" alt="A serene, abstract image representing calm focus" className="rounded-lg object-cover w-full h-full" data-ai-hint="calm abstract" />
             </div>
           </div>
         </section>
