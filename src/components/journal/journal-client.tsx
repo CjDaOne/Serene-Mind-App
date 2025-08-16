@@ -66,6 +66,7 @@ export default function JournalClient() {
       const result = await getJournalInsights({ journalEntries: currentEntryText });
       setInsights(result.insights);
     } catch (error) {
+      console.error(error);
       toast({ title: 'Error', description: 'Could not fetch AI insights.', variant: 'destructive' });
       setInsightsSheetOpen(false);
     } finally {
