@@ -8,18 +8,19 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Annoyed, Frown, Loader2, Meh, Smile, Wand2 } from 'lucide-react';
+import { Annoyed, Frown, Loader2, Meh, Smile, Wand2, Star } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { getJournalInsights } from '@/ai/flows/journal-insights';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '../ui/sheet';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Separator } from '../ui/separator';
 
-const moodOptions: { value: Mood; icon: React.ElementType }[] = [
-  { value: 'Happy', icon: Smile },
-  { value: 'Calm', icon: Meh },
-  { value: 'Sad', icon: Frown },
-  { value: 'Anxious', icon: Annoyed },
-  { value: 'Excited', icon: Smile },
+const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
+  { value: 'Happy', icon: Smile, color: 'text-green-500' },
+  { value: 'Excited', icon: Star, color: 'text-yellow-500' },
+  { value: 'Calm', icon: Meh, color: 'text-blue-500' },
+  { value: 'Sad', icon: Frown, color: 'text-gray-500' },
+  { value: 'Anxious', icon: Annoyed, color: 'text-purple-500' },
 ];
 
 export default function JournalClient() {
@@ -84,12 +85,12 @@ export default function JournalClient() {
               <div>
                 <Label className="mb-2 block">Select your mood</Label>
                 <RadioGroup value={selectedMood} onValueChange={(value: Mood) => setSelectedMood(value)} className="flex gap-2">
-                  {moodOptions.map(({ value, icon: Icon }) => (
+                  {moodOptions.map(({ value, icon: Icon, color }) => (
                     <Label key={value} htmlFor={value} className="flex-1">
                       <RadioGroupItem value={value} id={value} className="sr-only" />
-                       <div className={`p-3 rounded-lg border-2 flex flex-col items-center gap-2 cursor-pointer transition-colors ${selectedMood === value ? 'border-primary bg-secondary' : 'border-transparent'}`}>
-                        <Icon className={`w-6 h-6 ${selectedMood === value ? 'text-primary' : 'text-muted-foreground'}`}/>
-                        <span className="text-xs">{value}</span>
+                       <div className={`p-3 rounded-lg border-2 flex flex-col items-center gap-2 cursor-pointer transition-colors ${selectedMood === value ? 'border-primary bg-primary/10' : 'border-transparent hover:bg-secondary'}`}>
+                        <Icon className={`w-8 h-8 ${selectedMood === value ? 'text-primary' : color}`}/>
+                        <span className="text-xs font-medium">{value}</span>
                       </div>
                     </Label>
                   ))}
@@ -117,18 +118,36 @@ export default function JournalClient() {
             <CardContent>
               <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-4">
                 {journalEntries.map(entry => {
-                   const Icon = moodOptions.find(m => m.value === entry.mood)?.icon || Meh;
+                   const moodOption = moodOptions.find(m => m.value === entry.mood) || moodOptions.find(m => m.value === 'Calm')!;
+                   const Icon = moodOption.icon;
                    return(
-                    <div key={entry.id} className="p-4 rounded-lg border hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="flex items-center gap-2 font-semibold">
-                                <Icon className="w-5 h-5 text-accent"/>
-                                {entry.mood}
+                    <Dialog key={entry.id}>
+                      <DialogTrigger asChild>
+                        <div className="p-4 rounded-lg border hover:shadow-md transition-shadow cursor-pointer">
+                            <div className="flex justify-between items-center mb-2">
+                                <div className="flex items-center gap-2 font-semibold">
+                                    <Icon className={`w-5 h-5 ${moodOption.color}`}/>
+                                    {entry.mood}
+                                </div>
+                                <p className="text-sm text-muted-foreground">{entry.date.toLocaleDateString()}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">{entry.date.toLocaleDateString()}</p>
+                            <p className="text-sm text-muted-foreground truncate">{entry.content}</p>
                         </div>
-                        <p className="text-sm text-muted-foreground">{entry.content}</p>
-                    </div>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2">
+                            <Icon className={`w-6 h-6 ${moodOption.color}`} />
+                            {entry.mood} - {entry.date.toLocaleDateString()}
+                          </DialogTitle>
+                          <DialogDescription>
+                            Your reflection from this day.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <Separator />
+                        <p className="text-sm text-foreground leading-relaxed py-4">{entry.content}</p>
+                      </DialogContent>
+                    </Dialog>
                    );
                 })}
               </div>
