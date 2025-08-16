@@ -1,3 +1,4 @@
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -40,7 +41,7 @@ export default function LandingPage() {
               </Link>
             </Button>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
-              <p className="text-primary/80">A gentle illustration showcasing the app's clean UI.</p>
+               <img src="https://placehold.co/800x400.png" alt="App screenshot" className="rounded-lg" data-ai-hint="app user interface" />
             </div>
           </div>
         </section>
@@ -197,3 +198,5 @@ export default function LandingPage() {
     </div>
   );
 }
+
+    
