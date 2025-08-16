@@ -11,6 +11,20 @@ import {
 import { BrainCircuit } from 'lucide-react';
 import { MainNav } from './main-nav';
 import Link from 'next/link';
+import { useSidebar } from './ui/sidebar';
+
+function MobileHeader() {
+  const { open, setOpen } = useSidebar();
+  return (
+    <header className="md:hidden flex items-center justify-between p-4 border-b">
+      <Link href="/" className="flex items-center gap-2">
+        <BrainCircuit className="w-6 h-6 text-primary" />
+        <span className="font-headline font-bold text-primary">SereneMind</span>
+      </Link>
+      <SidebarTrigger />
+    </header>
+  );
+}
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -25,9 +39,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                     SereneMind
                  </h1>
               </Link>
-              <div className="md:hidden">
-                 <SidebarTrigger />
-              </div>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -35,6 +46,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </SidebarContent>
         </Sidebar>
         <SidebarInset>
+          <MobileHeader />
           <div className="hidden md:block p-4">
             <SidebarTrigger />
           </div>
