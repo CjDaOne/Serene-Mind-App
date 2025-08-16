@@ -2,13 +2,13 @@
 
 import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
-import { Award, BookText, Calendar, CheckSquare, LayoutDashboard, Sparkles } from 'lucide-react';
+import { Award, BookText, Calendar, CheckSquare, LayoutDashboard, Sparkles, LogOut } from 'lucide-react';
 import Link from 'next/link';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/tasks', label: 'Tasks', icon: CheckSquare },
-  { href: ' /journal', label: 'Journal', icon: BookText },
+  { href: '/journal', label: 'Journal', icon: BookText },
   { href: '/rewards', label: 'Rewards', icon: Award },
   { href: '/affirmations', label: 'Affirmations', icon: Sparkles },
   { href: '/calendar', label: 'Calendar', icon: Calendar },
@@ -32,6 +32,14 @@ export function MainNav() {
             </Link>
         </SidebarMenuItem>
       ))}
+      <SidebarMenuItem>
+        <Link href="/" className="w-full">
+          <SidebarMenuButton tooltip="Sign Out">
+            <LogOut className="h-5 w-5" />
+            <span className="font-medium">Sign Out</span>
+          </SidebarMenuButton>
+        </Link>
+      </SidebarMenuItem>
     </SidebarMenu>
   );
 }

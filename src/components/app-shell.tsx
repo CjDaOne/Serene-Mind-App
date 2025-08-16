@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sidebar';
 import { BrainCircuit } from 'lucide-react';
 import { MainNav } from './main-nav';
+import Link from 'next/link';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   return (
@@ -18,12 +19,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <Sidebar>
           <SidebarHeader>
             <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-2">
+              <Link href="/" className="flex items-center gap-2">
                  <BrainCircuit className="w-8 h-8 text-primary" />
                  <h1 className="text-xl font-headline font-bold text-primary">
                     SereneMind
                  </h1>
-              </div>
+              </Link>
               <div className="md:hidden">
                  <SidebarTrigger />
               </div>
