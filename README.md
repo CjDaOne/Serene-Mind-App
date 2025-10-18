@@ -1,11 +1,4 @@
-Perfect — let’s update your README.md so it:
 
-
-
-
----
-
-Here’s the updated README.md (ready to copy-paste directly into GitHub 👇):
 
 # 🌿 Serene Mind App
 
