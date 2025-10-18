@@ -196,6 +196,5 @@ Each iteration brings us closer to a fully accessible, AI-assisted wellness plat
 
 ---
 
-Would you like me to **add your actual Netlify/Vercel live prototype link** and include a **“Development Roadmap” table** (with estimated milestones + owners)?  
-That’ll make your `README.md` more professional for collaborators and GitHub viewers.
+
 
