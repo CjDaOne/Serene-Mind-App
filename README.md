@@ -13,7 +13,7 @@ This branch (`main`) contains the **prototype** version built with **Vite, React
 It remains live for demonstration and feedback purposes while migration to **Next.js** is in progress.
 
 ### 🔗 Live Prototype
-👉 [View Live App (Prototype)](https://your-live-prototype-link-here.com)
+👉 [View Live App (Prototype)](https://serenemindapp.netlify.app/
 
 > **Note:** This version remains intact and deployable.  
 > All migration work will occur in a **separate branch** (`nextjs-migration`) to ensure uninterrupted prototype viewing.
