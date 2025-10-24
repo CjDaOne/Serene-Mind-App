@@ -62,7 +62,7 @@ npm install
 npm run dev
 ```
 
-App will be available at: [http://localhost:9002](http://localhost:9002)
+App will be available at: [http://localhost:3000](http://localhost:3000)
 
 ---
 

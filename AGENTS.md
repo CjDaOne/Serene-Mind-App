@@ -1,7 +1,7 @@
 # AGENTS.md - Development Guide for AI Coding Tools
 
 ## Commands
-- **Dev**: `npm run dev` (runs on port 9002 with Turbopack)
+- **Dev**: `npm run dev` (runs on port 3000 with Turbopack)
 - **Build**: `npm run build`
 - **Typecheck**: `npm run typecheck` (tsc --noEmit)
 - **Lint**: `npm run lint` (Next.js ESLint)
@@ -13,7 +13,7 @@
 - **Structure**: `src/app/` contains routes (dashboard, journal, tasks, calendar, affirmations, rewards)
 - **AI Layer**: Google Genkit + Gemini API in `src/ai/` for journaling insights
 - **Database**: MongoDB (planned, currently using local data in `src/lib/data.ts`)
-- **Auth**: Not yet implemented (NextAuth.js planned)
+- **Auth**: Implemented with NextAuth.js and Google OAuth
 - **Deployment**: Vercel (via apphosting.yaml)
 
 ## Code Style & Conventions

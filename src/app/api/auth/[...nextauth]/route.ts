@@ -14,7 +14,7 @@ declare module 'next-auth' {
   }
 }
 
-const handler = NextAuth({
+export const authOptions = {
   // adapter: MongoDBAdapter(clientPromise), // TODO: Enable when MongoDB is set up
   providers: [
     GoogleProvider({
@@ -33,6 +33,8 @@ const handler = NextAuth({
   session: {
     strategy: 'jwt',
   },
-});
+};
+
+const handler = NextAuth(authOptions);
 
 export { handler as GET, handler as POST };
