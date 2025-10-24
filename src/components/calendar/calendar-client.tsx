@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { MOCK_TASKS } from '@/lib/data';
+import { useTaskStore } from '@/lib/store';
 import type { Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -10,20 +10,12 @@ import { isSameDay } from 'date-fns';
 import { Badge } from '../ui/badge';
 
 export default function CalendarClient() {
-  const [tasks, setTasks] = useState<Task[]>(MOCK_TASKS);
+  const { tasks, toggleTask } = useTaskStore();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const tasksOnSelectedDay = selectedDate ? tasks.filter(task => isSameDay(task.dueDate, selectedDate)) : [];
-  
-  const daysWithTasks = tasks.map(task => task.dueDate);
 
-  const toggleTaskCompletion = (taskId: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
-  };
+  const daysWithTasks = tasks.map(task => task.dueDate);
 
   return (
     <div className="flex flex-col gap-8">
@@ -76,8 +68,8 @@ export default function CalendarClient() {
                     <div className="space-y-4 max-h-[60vh] overflow-y-auto">
                         {tasksOnSelectedDay.length > 0 ? (
                            tasksOnSelectedDay.map(task => (
-                            <div key={task.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary">
-                                <Checkbox id={`cal-task-${task.id}`} checked={task.completed} onCheckedChange={() => toggleTaskCompletion(task.id)} />
+                           <div key={task.id} className="flex items-center gap-4 p-2 rounded-lg hover:bg-secondary">
+                           <Checkbox id={`cal-task-${task.id}`} checked={task.completed} onCheckedChange={() => toggleTask(task.id)} />
                                 <div>
                                     <label htmlFor={`cal-task-${task.id}`} className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</label>
                                     <p className="text-sm text-muted-foreground">{task.description}</p>

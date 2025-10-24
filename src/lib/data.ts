@@ -1,5 +1,4 @@
 import type { Task, JournalEntry, Achievement } from './types';
-import { Award, BookOpen, CalendarCheck2, Star } from 'lucide-react';
 
 export const MOCK_TASKS: Task[] = [
   {
@@ -75,27 +74,27 @@ export const MOCK_ACHIEVEMENTS: Achievement[] = [
         title: 'First Task Completed',
         description: 'You completed your very first task!',
         unlocked: true,
-        icon: Star,
+        icon: 'Star',
     },
     {
         id: '2',
         title: 'Journal Entry',
         description: 'You wrote your first journal entry.',
         unlocked: true,
-        icon: BookOpen,
+        icon: 'BookOpen',
     },
     {
         id: '3',
         title: 'Task Master',
         description: 'Complete 5 tasks.',
         unlocked: false,
-        icon: Award,
+        icon: 'Award',
     },
     {
         id: '4',
         title: 'Consistent Journalist',
         description: 'Write in your journal for 3 days.',
         unlocked: true,
-        icon: CalendarCheck2,
+        icon: 'CalendarCheck2',
     }
 ]

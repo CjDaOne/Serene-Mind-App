@@ -1,7 +1,10 @@
 'use client';
 
-import { useState } from 'react';
-import { MOCK_TASKS } from '@/lib/data';
+import React, { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useTaskStore } from '@/lib/store';
 import type { Task, Priority } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,52 +18,56 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Popover, PopoverContent, PopoverTrigger } from '../ui/popover';
 import { Calendar } from '../ui/calendar';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '../ui/form';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import Link from 'next/link';
 
+const taskSchema = z.object({
+  title: z.string().min(1, 'Title is required'),
+  priority: z.enum(['Low', 'Medium', 'High']),
+  dueDate: z.date().optional(),
+});
+
+type TaskForm = z.infer<typeof taskSchema>;
+
 export default function TaskManager() {
-  const [tasks, setTasks] = useState<Task[]>([]);
+  const { tasks, addTask, deleteTask, toggleTask, updateSubtask, addSubtasks } = useTaskStore();
   const [isSuggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeTaskForSuggestion, setActiveTaskForSuggestion] = useState<Task | null>(null);
 
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [newTaskPriority, setNewTaskPriority] = useState<Priority>('Medium');
-  const [newTaskDueDate, setNewTaskDueDate] = useState<Date | undefined>(new Date());
+  const form = useForm<TaskForm>({
+    resolver: zodResolver(taskSchema),
+    defaultValues: {
+      title: '',
+      priority: 'Medium',
+      dueDate: new Date(),
+    },
+  });
 
   const { toast } = useToast();
 
-  const handleAddTask = () => {
-    if (newTaskTitle.trim()) {
-      const newTask: Task = {
-        id: Date.now().toString(),
-        title: newTaskTitle,
-        completed: false,
-        dueDate: newTaskDueDate || new Date(),
-        priority: newTaskPriority,
-        subtasks: [],
-      };
-      setTasks(prevTasks => [newTask, ...prevTasks]);
-      setNewTaskTitle('');
-      setNewTaskPriority('Medium');
-      setNewTaskDueDate(new Date());
-      toast({ title: "Task added!", description: `Successfully added "${newTaskTitle}"` });
-    }
+  const onSubmit = (data: TaskForm) => {
+    addTask({
+      title: data.title,
+      completed: false,
+      dueDate: data.dueDate || new Date(),
+      priority: data.priority,
+      subtasks: [],
+    });
+    form.reset();
+    toast({ title: 'Task added!', description: `Successfully added "${data.title}"` });
   };
 
   const handleDeleteTask = (taskId: string) => {
-    setTasks(prevTasks => prevTasks.filter(task => task.id !== taskId));
-    toast({ title: "Task removed.", variant: 'destructive' });
+  deleteTask(taskId);
+  toast({ title: "Task removed.", variant: 'destructive' });
   };
   
   const toggleTaskCompletion = (taskId: string) => {
-    setTasks(prevTasks =>
-      prevTasks.map(task =>
-        task.id === taskId ? { ...task, completed: !task.completed } : task
-      )
-    );
+    toggleTask(taskId);
   };
 
   const handleSuggestSubtasks = async (task: Task) => {
@@ -83,7 +90,7 @@ export default function TaskManager() {
       title: s,
       completed: false,
     }));
-    setTasks(prevTasks => prevTasks.map(t => t.id === task.id ? { ...t, subtasks: [...t.subtasks, ...newSubtasks] } : t));
+    addSubtasks(task.id, newSubtasks);
     setSuggestionDialogOpen(false);
     setSuggestions([]);
     setActiveTaskForSuggestion(null);
@@ -96,47 +103,77 @@ export default function TaskManager() {
             <CardTitle className="text-2xl font-bold">Your Tasks</CardTitle>
         </CardHeader>
         <CardContent>
-            <div className="flex flex-col sm:flex-row gap-2 mb-6">
-                <Input 
-                    placeholder="Add a new task..."
-                    value={newTaskTitle}
-                    onChange={(e) => setNewTaskTitle(e.target.value)}
-                    className="flex-grow"
-                />
-                <Select value={newTaskPriority} onValueChange={(v: Priority) => setNewTaskPriority(v)}>
-                    <SelectTrigger className="w-full sm:w-[120px]">
-                        <SelectValue placeholder="Priority" />
-                    </SelectTrigger>
-                    <SelectContent>
+        <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col sm:flex-row gap-2 mb-6">
+        <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+                    <FormItem className="flex-grow">
+                        <FormControl>
+                        <Input placeholder="Add a new task..." {...field} />
+                </FormControl>
+                    <FormMessage />
+                </FormItem>
+        )}
+        />
+        <FormField
+            control={form.control}
+                name="priority"
+              render={({ field }) => (
+                <FormItem className="w-full sm:w-[120px]">
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Priority" />
+                        </SelectTrigger>
+                    </FormControl>
+                        <SelectContent>
                         <SelectItem value="Low">Low</SelectItem>
                         <SelectItem value="Medium">Medium</SelectItem>
-                        <SelectItem value="High">High</SelectItem>
-                    </SelectContent>
-                </Select>
-                 <Popover>
-                    <PopoverTrigger asChild>
-                    <Button
-                        variant={"outline"}
-                        className={cn(
-                        "w-full sm:w-auto justify-start text-left font-normal",
-                        !newTaskDueDate && "text-muted-foreground"
+                            <SelectItem value="High">High</SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <FormMessage />
+            </FormItem>
+        )}
+        />
+        <FormField
+            control={form.control}
+            name="dueDate"
+                render={({ field }) => (
+                    <FormItem className="w-full sm:w-auto">
+                            <Popover>
+                                    <PopoverTrigger asChild>
+                                        <FormControl>
+                                            <Button
+                                                variant="outline"
+                                                className={cn(
+                                                    "w-full justify-start text-left font-normal",
+                                                    !field.value && "text-muted-foreground"
+                                                )}
+                                            >
+                                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                                {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                            </Button>
+                                        </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0">
+                                        <Calendar
+                                            mode="single"
+                                            selected={field.value}
+                                            onSelect={field.onChange}
+                                            initialFocus
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <FormMessage />
+                            </FormItem>
                         )}
-                    >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {newTaskDueDate ? format(newTaskDueDate, "PPP") : <span>Pick a date</span>}
-                    </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                    <Calendar
-                        mode="single"
-                        selected={newTaskDueDate}
-                        onSelect={setNewTaskDueDate}
-                        initialFocus
                     />
-                    </PopoverContent>
-                </Popover>
-                <Button onClick={handleAddTask} className="w-full sm:w-auto">Add Task</Button>
-            </div>
+                    <Button type="submit" className="w-full sm:w-auto">Add Task</Button>
+                </form>
+            </Form>
             
             <div className="space-y-4">
                 {tasks.length === 0 ? (
@@ -150,15 +187,52 @@ export default function TaskManager() {
                                 onCheckedChange={() => toggleTaskCompletion(task.id)}
                             />
                             <div className="flex-1">
-                                <label htmlFor={`task-check-${task.id}`} className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</label>
-                                <p className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <CalendarIcon className="w-3 h-3"/> {task.dueDate.toLocaleDateString()}
-                                    <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
-                                    <span>{task.priority} Priority</span>
-                                </p>
+                            <label htmlFor={`task-check-${task.id}`} className={`font-medium ${task.completed ? 'line-through text-muted-foreground' : ''}`}>{task.title}</label>
+                            <p className="text-sm text-muted-foreground flex items-center gap-2">
+                            <CalendarIcon className="w-3 h-3"/> {task.dueDate.toLocaleDateString()}
+                            <span className="w-1 h-1 bg-muted-foreground rounded-full"></span>
+                            <span>{task.priority} Priority</span>
+                            </p>
+                                {task.subtasks.length > 0 && (
+                                    <Accordion type="single" collapsible className="mt-2">
+                                        <AccordionItem value={`subtasks-${task.id}`} className="border-none">
+                                            <AccordionTrigger className="text-sm py-1 hover:no-underline">
+                                                {task.subtasks.filter(st => st.completed).length}/{task.subtasks.length} subtasks
+                                            </AccordionTrigger>
+                                            <AccordionContent>
+                                                <div className="space-y-1 ml-4">
+                                                    {task.subtasks.map(subtask => (
+                                                        <div key={subtask.id} className="flex items-center gap-2">
+                                                            <Checkbox
+                                                                id={`subtask-${subtask.id}`}
+                                                                checked={subtask.completed}
+                                                                onCheckedChange={(checked) => updateSubtask(task.id, subtask.id, !!checked)}
+                                                            />
+                                                            <label htmlFor={`subtask-${subtask.id}`} className={`text-sm ${subtask.completed ? 'line-through text-muted-foreground' : ''}`}>
+                                                                {subtask.title}
+                                                            </label>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </AccordionContent>
+                                        </AccordionItem>
+                                    </Accordion>
+                                )}
+                                {task.subtasks.length === 0 && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        className="mt-1 h-6 px-2 text-xs"
+                                        onClick={() => handleSuggestSubtasks(task)}
+                                        disabled={isSuggestionLoading}
+                                    >
+                                        {isSuggestionLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Wand2 className="w-3 h-3" />}
+                                        Get AI Subtasks
+                                    </Button>
+                                )}
                             </div>
-                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task.id)}>
-                                <Trash2 className="w-4 h-4 text-destructive" />
+                            <Button variant="ghost" size="icon" onClick={() => handleDeleteTask(task.id)} aria-label="Delete task">
+                            <Trash2 className="w-4 h-4 text-destructive" />
                             </Button>
                         </div>
                     ))

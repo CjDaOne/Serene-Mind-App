@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCw, Heart } from 'lucide-react';
@@ -20,23 +20,26 @@ const affirmations = [
 
 export default function AffirmationsClient() {
   const [currentAffirmationIndex, setCurrentAffirmationIndex] = useState(0);
-  const [favorites, setFavorites] = useState<number[]>([]);
+  const [favoriteIndices, setFavoriteIndices] = useState<Set<number>>(new Set());
 
   const showNextAffirmation = () => {
     setCurrentAffirmationIndex((prevIndex) => (prevIndex + 1) % affirmations.length);
   };
 
   const toggleFavorite = () => {
-    setFavorites((prevFavorites) => {
-      if (prevFavorites.includes(currentAffirmationIndex)) {
-        return prevFavorites.filter((index) => index !== currentAffirmationIndex);
+    setFavoriteIndices((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(currentAffirmationIndex)) {
+        newFavorites.delete(currentAffirmationIndex);
       } else {
-        return [...prevFavorites, currentAffirmationIndex];
+        newFavorites.add(currentAffirmationIndex);
       }
+      return newFavorites;
     });
   };
 
-  const isFavorite = favorites.includes(currentAffirmationIndex);
+  const isFavorite = favoriteIndices.has(currentAffirmationIndex);
+  const favorites = useMemo(() => Array.from(favoriteIndices), [favoriteIndices]);
 
   return (
     <div className="flex flex-col gap-8 items-center text-center">
