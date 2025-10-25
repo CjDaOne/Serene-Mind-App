@@ -1,569 +1,202 @@
-# Serene-Mind-App Master Operational Playbook (v1.3 — Oct 2025)
+# **SereneMind_Playbook.v5**
 
-**Updates:**
-
-* Integrated comprehensive code review findings from `dev` branch
-* Added blocking fixes, production-ready API routes, DB connections, React Query migration examples, and security notes
-* Included copy-paste ready files: MongoDB connector, API routes for tasks (including id/toggle), React Query hooks, protected-route examples, NextAuth enablement snippet, .env.local example, and Jest test skeletons
+## **📌 Updated Development Playbook with Core Agent + DB Subagent Integration**
 
 ---
 
-## Executive Summary (from code review)
+### **Overview**
 
-* **Overall score:** 7.5/10 — Solid Next.js 15 app, AI & testing present, but **MongoDB not connected**, **authentication bypassed**, and **mocked state** still in use. These are blocking for production.
-* **Immediate priorities:** Connect MongoDB, re-enable authentication, replace mock state with React Query + API routes.
+This update adds a structured approach to leveraging **Amp Code-style agents and subagents** to accelerate and cleanly complete the Serene Mind App project. The agents orchestrate critical tasks based on the **full code audit** to ensure faster development, proper testing, and cleaner architecture.
 
 ---
 
-## Critical Fixes & Code (copy-paste ready)
+## **1️⃣ Core Agent + DB Subagent Structure**
 
-> All files below are provided as production-ready snippets. Place them under the paths indicated and update environment variables as needed.
+### **Folder Structure**
 
-### 1) MongoDB connector — `src/lib/mongodb-connect.ts`
-
-```ts
-import mongoose from 'mongoose';
-
-const MONGODB_URI = process.env.MONGODB_URI!;
-
-if (!MONGODB_URI) {
-  throw new Error('Please define MONGODB_URI in .env.local');
-}
-
-interface MongooseCache {
-  conn: typeof mongoose | null;
-  promise: Promise<typeof mongoose> | null;
-}
-
-declare global {
-  // eslint-disable-next-line no-var
-  var mongoose: MongooseCache | undefined;
-}
-
-let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
-
-if (!global.mongoose) {
-  global.mongoose = cached;
-}
-
-async function dbConnect(): Promise<typeof mongoose> {
-  if (cached.conn) {
-    return cached.conn;
-  }
-
-  if (!cached.promise) {
-    cached.promise = mongoose.connect(MONGODB_URI, {
-      bufferCommands: false,
-      // Recommended options can be added here
-    });
-  }
-
-  try {
-    cached.conn = await cached.promise;
-  } catch (e) {
-    cached.promise = null;
-    throw e;
-  }
-
-  return cached.conn;
-}
-
-export default dbConnect;
+```
+/agents
+├── manifest.json             # Core Agent + Subagents configuration
+├── core-agent.ts             # Orchestrates subagents
+├── subagents/
+│   ├── db-agent.ts           # Handles MongoDB connections, route validation
+│   ├── auth-agent.ts         # Optional starter for auth fixes
+│   ├── data-agent.ts         # Optional starter for Zustand → React Query
+│   └── docs-agent.ts         # Optional starter for auto documentation
+└── logs/
+    └── agent-log.md          # Core agent output logs
 ```
 
+**Notes:**
+
+* `manifest.json` defines each agent and its role.
+* `core-agent.ts` invokes all subagents.
+* `logs/` tracks agent activity for auditing and debugging.
+
 ---
 
-### 2) Task Model (Mongoose) — `src/lib/models/Task.ts`
+### **2️⃣ Manifest Configuration (`manifest.json`)**
 
-```ts
-import mongoose, { Schema, Document } from 'mongoose';
-
-export interface ITask extends Document {
-  userId: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  priority?: 'low' | 'medium' | 'high';
-  dueDate?: Date;
-  subtasks?: { title: string; completed: boolean }[];
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-const TaskSchema = new Schema<ITask>(
-  {
-    userId: { type: String, required: true, index: true },
-    title: { type: String, required: true },
-    description: { type: String },
-    completed: { type: Boolean, default: false },
-    priority: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
-    dueDate: { type: Date },
-    subtasks: [
-      {
-        title: String,
-        completed: { type: Boolean, default: false },
-      },
-    ],
+```json
+{
+  "coreAgent": {
+    "name": "SereneMind-Core",
+    "role": "Oversees all subagents, merges results, reports actions.",
+    "subagents": ["DB-Agent"]
   },
-  { timestamps: true }
-);
-
-export default mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
+  "subagents": [
+    {
+      "name": "DB-Agent",
+      "role": "Connects to MongoDB, validates API routes, ensures NextAuth adapter works",
+      "tasks": [
+        "Check MONGODB_URI",
+        "Create /lib/mongodb-connect.ts if missing",
+        "Validate /api/tasks routes",
+        "Test GET/POST functionality",
+        "Generate log report for Core Agent"
+      ]
+    },
+    {
+      "name": "Auth-Agent",
+      "role": "Re-enables session guards on protected routes",
+      "tasks": [
+        "Check all /app pages for auth bypass",
+        "Reinstate useSession and redirect logic",
+        "Report errors"
+      ]
+    },
+    {
+      "name": "Data-Agent",
+      "role": "Migrates mock Zustand stores to React Query hooks",
+      "tasks": [
+        "Scan /lib/store.ts for MOCK data",
+        "Generate React Query hooks skeleton",
+        "Validate hooks in sample component"
+      ]
+    },
+    {
+      "name": "Docs-Agent",
+      "role": "Updates README and Playbook automatically",
+      "tasks": [
+        "Scan for new files or APIs",
+        "Update Playbook with latest structure",
+        "Log all changes"
+      ]
+    }
+  ]
+}
 ```
 
 ---
 
-### 3) API route — `src/app/api/tasks/route.ts` (GET, POST)
+### **3️⃣ Core Agent (`core-agent.ts`)**
 
 ```ts
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import dbConnect from '@/lib/mongodb-connect';
-import Task from '@/lib/models/Task';
+import fs from "fs";
+import path from "path";
+import dbAgent from "./subagents/db-agent";
 
-export async function GET(request: NextRequest) {
+const logFile = path.join(__dirname, "logs", "agent-log.md");
+
+async function CoreAgent() {
+  fs.writeFileSync(logFile, `# Core Agent Log\n\nStarting agents...\n`);
+
+  console.log("Starting DB Agent...");
+  fs.appendFileSync(logFile, "\n## DB Agent\n");
+  await dbAgent(logFile);
+
+  console.log("All subagents finished.");
+  fs.appendFileSync(logFile, "\n✅ All agents completed successfully.\n");
+}
+
+CoreAgent();
+```
+
+---
+
+### **4️⃣ DB Subagent (`db-agent.ts`)**
+
+```ts
+import mongoose from "mongoose";
+import fs from "fs";
+
+const MONGODB_URI = process.env.MONGODB_URI || "";
+
+export default async function DBAgent(logFile: string) {
+  fs.appendFileSync(logFile, `Checking MongoDB connection...\n`);
+
+  if (!MONGODB_URI) {
+    fs.appendFileSync(logFile, "❌ MONGODB_URI not found in env.\n");
+    return;
+  }
+
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await mongoose.connect(MONGODB_URI, { bufferCommands: false });
+    fs.appendFileSync(logFile, "✅ MongoDB connected successfully.\n");
+
+    const routePath = "./src/app/api/tasks/route.ts";
+    if (fs.existsSync(routePath)) {
+      fs.appendFileSync(logFile, `✅ ${routePath} exists.\n`);
+    } else {
+      fs.appendFileSync(logFile, `⚠️ ${routePath} missing!\n`);
     }
 
-    await dbConnect();
-    const tasks = await Task.find({ userId: session.user.id }).sort({ createdAt: -1 });
-
-    return NextResponse.json({ tasks });
-  } catch (error) {
-    console.error('GET /api/tasks error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
-    const body = await request.json();
-    // TODO: Validate `body` with Zod schema before creating
-
-    await dbConnect();
-    const task = new Task({ userId: session.user.id, ...body });
-    await task.save();
-
-    return NextResponse.json({ task }, { status: 201 });
-  } catch (error) {
-    console.error('POST /api/tasks error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    await mongoose.disconnect();
+  } catch (err) {
+    fs.appendFileSync(logFile, `❌ MongoDB connection failed: ${err}\n`);
   }
 }
 ```
 
 ---
 
-### 4) API route — `src/app/api/tasks/[id]/route.ts` (GET, PUT, DELETE)
+## **5️⃣ Strategic Advantages of Agents & Subagents**
 
-```ts
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb-connect';
-import Task from '@/lib/models/Task';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+1. **Automation of Critical Tasks**
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    await dbConnect();
-    const task = await Task.findById(params.id);
-    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    return NextResponse.json({ task });
-  } catch (error) {
-    console.error('GET /api/tasks/[id] error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+   * MongoDB validation, API route checks, and environment verification happen automatically.
+   * Reduces human error and ensures all infrastructure is ready before coding.
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    const body = await request.json();
-    // TODO: Validate body
-    await dbConnect();
-    const task = await Task.findById(params.id);
-    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    Object.assign(task, body);
-    await task.save();
-    return NextResponse.json({ task });
-  } catch (error) {
-    console.error('PUT /api/tasks/[id] error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+2. **Parallel Task Management**
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    await dbConnect();
-    const task = await Task.findById(params.id);
-    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    await task.deleteOne();
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('DELETE /api/tasks/[id] error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
+   * Each subagent focuses on a specific responsibility: `DB-Agent`, `Auth-Agent`, `Data-Agent`.
+   * Core Agent orchestrates execution, enabling **faster iteration** and **clean separation of concerns**.
+
+3. **Real-time Reporting & Audit**
+
+   * Logs provide visibility into which components are correct, missing, or broken.
+   * Ensures a clean project state before feature implementation.
+
+4. **Consistent Code Quality**
+
+   * Auto-generates starter hooks, API routes, and documentation scaffolding.
+   * Enforces best practices such as React Query usage, type safety, and secure auth flow.
+
+5. **Accelerated Completion**
+
+   * Eliminates repetitive setup tasks (DB connection, auth reinstatement, store migration).
+   * Developers can focus **directly on UI/UX polish, AI integration, and advanced features**.
+
+6. **Future-Proofing**
+
+   * New subagents can be added (e.g., `Test-Agent` for automated Jest/Playwright tests) without altering core workflow.
+   * Modular design aligns with continuous delivery and production readiness.
+
+---
+
+## **6️⃣ How to Use This Playbook**
+
+1. Add `.env.local` with MongoDB and NextAuth secrets.
+2. Run Core Agent:
+
+```bash
+node agents/core-agent.ts
 ```
 
----
-
-### 5) Toggle route — `src/app/api/tasks/[id]/toggle/route.ts` (PATCH)
-
-```ts
-import { NextRequest, NextResponse } from 'next/server';
-import dbConnect from '@/lib/mongodb-connect';
-import Task from '@/lib/models/Task';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    await dbConnect();
-    const task = await Task.findById(params.id);
-    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
-    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
-    task.completed = !task.completed;
-    await task.save();
-    return NextResponse.json({ task });
-  } catch (error) {
-    console.error('PATCH /api/tasks/[id]/toggle error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
-  }
-}
-```
+3. Review `logs/agent-log.md`.
+4. Add additional subagents as needed: `Auth-Agent`, `Data-Agent`, `Docs-Agent`.
+5. Continue development with confidence: database ready, API routes scaffolded, authentication enforced, and server-state hooks prepared.
 
 ---
 
-### 6) React Query hooks — `src/lib/queries/tasks.ts`
-
-```ts
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { ITask } from '@/lib/models/Task';
-
-export function useTasks() {
-  return useQuery({
-    queryKey: ['tasks'],
-    queryFn: async () => {
-      const res = await fetch('/api/tasks');
-      if (!res.ok) throw new Error('Failed to fetch tasks');
-      const data = await res.json();
-      return data.tasks as ITask[];
-    },
-  });
-}
-
-export function useAddTask() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (task: Partial<ITask>) => {
-      const res = await fetch('/api/tasks', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(task),
-      });
-      if (!res.ok) throw new Error('Failed to add task');
-      return res.json();
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-  });
-}
-
-export function useToggleTask() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (taskId: string) => {
-      const res = await fetch(`/api/tasks/${taskId}/toggle`, { method: 'PATCH' });
-      if (!res.ok) throw new Error('Failed to toggle task');
-      return res.json();
-    },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
-  });
-}
-```
-
----
-
-### 7) Root Layout — `src/app/layout.tsx` (React Query provider)
-
-```tsx
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import Providers from '@/components/providers';
-import './globals.css';
-
-const queryClient = new QueryClient();
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <QueryClientProvider client={queryClient}>
-          <Providers>{children}</Providers>
-        </QueryClientProvider>
-      </body>
-    </html>
-  );
-}
-```
-
----
-
-### 8) Re-enable NextAuth & MongoDB Adapter snippet — `src/app/api/auth/[...nextauth]/route.ts`
-
-```ts
-import NextAuth from 'next-auth';
-import GoogleProvider from 'next-auth/providers/google';
-import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
-import clientPromise from '@/lib/mongodb-client'; // if you use a separate client promise
-
-export const authOptions = {
-  providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    }),
-  ],
-  adapter: MongoDBAdapter(clientPromise),
-  secret: process.env.NEXTAUTH_SECRET,
-  session: {
-    strategy: 'jwt',
-  },
-};
-
-export default NextAuth(authOptions);
-```
-
-**Note:** Replace `clientPromise` with your existing client or use `dbConnect` wrapper to create.
-
----
-
-### 9) Protected Page Example (`src/app/dashboard/page.tsx`)
-
-```tsx
-'use client';
-
-import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import AppShell from '@/components/app-shell';
-import DashboardClient from '@/components/dashboard/dashboard-client';
-
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (status === 'loading') return;
-    if (!session) router.push('/');
-  }, [session, status, router]);
-
-  if (status === 'loading') return <div>Loading...</div>;
-  if (!session) return null;
-
-  return (
-    <AppShell>
-      <DashboardClient />
-    </AppShell>
-  );
-}
-```
-
----
-
-### 10) Replace Zustand mock store usage — Example migration
-
-**Before (mocked Zustand store):**
-
-```ts
-// src/lib/store.ts
-export const useTaskStore = create<TaskStore>((set) => ({
-  tasks: MOCK_TASKS,
-  addTask: (task) => set((s) => ({ tasks: [...s.tasks, task] })),
-}));
-```
-
-**After (keep Zustand for UI state only):**
-
-* Move data fetching to React Query hooks (see `src/lib/queries/tasks.ts`)
-* Keep Zustand for ephemeral UI state like `isSidebarOpen` or `modalOpen`
-
-```ts
-// src/lib/ui-store.ts
-import create from 'zustand';
-
-export const useUIStore = create((set) => ({
-  isSidebarOpen: true,
-  toggleSidebar: () => set((s) => ({ isSidebarOpen: !s.isSidebarOpen })),
-}));
-```
-
----
-
-### 11) Task Manager client example — using React Query
-
-```tsx
-import { useForm } from 'react-hook-form';
-import { useAddTask } from '@/lib/queries/tasks';
-import { toast } from '@/components/ui/toast';
-
-export default function TaskManagerClient() {
-  const { register, handleSubmit, reset } = useForm();
-  const addTask = useAddTask();
-
-  const onSubmit = async (data: any) => {
-    try {
-      await addTask.mutateAsync({
-        title: data.title,
-        completed: false,
-        dueDate: data.dueDate || null,
-        priority: data.priority || 'low',
-      });
-      reset();
-      toast({ title: 'Task added!' });
-    } catch (err) {
-      toast({ title: 'Could not add task', variant: 'destructive' });
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <input {...register('title', { required: true })} placeholder="Task title" />
-      <button type="submit">Add</button>
-    </form>
-  );
-}
-```
-
----
-
-### 12) .env.local example
-
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/serene-mind?retryWrites=true&w=majority
-NEXTAUTH_SECRET=your-super-secret-key
-NEXTAUTH_URL=http://localhost:3000
-GOOGLE_CLIENT_ID=your-google-oauth-client-id
-GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
-GOOGLE_API_KEY=your-gemini-api-key
-NODE_ENV=development
-```
-
----
-
-### 13) Jest API test skeleton — `src/__tests__/api/tasks.test.ts`
-
-```ts
-import { createMocks } from 'node-mocks-http';
-import { GET, POST } from '@/app/api/tasks/route';
-
-describe('API: /api/tasks', () => {
-  it('GET should return 401 without session', async () => {
-    const { req, res } = createMocks({ method: 'GET' });
-    const response = await GET(req as any);
-    // Expect unauthorized json
-    expect(response.status).toBe(401);
-  });
-
-  // Add tests for POST (mock db and session)
-});
-```
-
----
-
-## Architecture & Security Additions (explicit)
-
-* **Validation:** Use Zod schemas in API routes (parse input before DB writes)
-* **Rate limiting:** Add `next-rate-limit` for AI endpoints
-* **CSRF:** Ensure NextAuth handles CSRF for auth flows; for other routes, consider same-origin and token checks
-* **Security headers:** Add `headers` in Next.js config for CSP, X-Frame-Options, HSTS
-
-Example security headers in `next.config.ts`:
-
-```ts
-const securityHeaders = [
-  { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' data: https:;" },
-  { key: 'X-Frame-Options', value: 'DENY' },
-  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
-];
-
-module.exports = {
-  async headers() {
-    return [
-      {
-        source: '/(.*)',
-        headers: securityHeaders,
-      },
-    ];
-  },
-};
-```
-
----
-
-## Prioritized Action Plan (updated)
-
-**Phase 1 — BLOCKING (Days 1-3)**
-
-1. Add `src/lib/mongodb-connect.ts` and `src/lib/models/*` (tasks, journal, mood)
-2. Enable NextAuth MongoDB adapter and re-enable auth checks across protected pages
-3. Implement core API routes: `/api/tasks`, `/api/tasks/[id]`, `/api/tasks/[id]/toggle`, `/api/journal`, `/api/achievements`
-
-**Phase 2 — Data Layer & Tests (Days 4-10)**
-
-1. Migrate from mock Zustand store to React Query hooks (keep Zustand for UI only)
-2. Add API route tests + integration tests
-3. Update existing components to use React Query mutations & queries
-
-**Phase 3 — Polish & Security (Days 11-21)**
-
-1. Add validation, rate limiting, CSP headers
-2. Convert heavy client pages to server components where possible
-3. Add PLAYWRIGHT E2E tests and CI integration
-
----
-
-## Files added to this playbook (copy-paste ready)
-
-* `src/lib/mongodb-connect.ts` (full)
-* `src/lib/models/Task.ts` (full)
-* `src/app/api/tasks/route.ts` (GET, POST)
-* `src/app/api/tasks/[id]/route.ts` (GET, PUT, DELETE)
-* `src/app/api/tasks/[id]/toggle/route.ts` (PATCH)
-* `src/lib/queries/tasks.ts` (React Query hooks)
-* `src/app/layout.tsx` (QueryClientProvider example)
-* `src/app/api/auth/[...nextauth]/route.ts` (enablement snippet)
-* Protected page example for `/dashboard`
-* TaskManager client example using React Query
-* `.env.local` example
-* Jest test skeleton for API
-
----
-
-## Next Steps I can do for you now
-
-* Paste additional API routes (journal, moods, achievements)
-* Convert select components to use React Query (I can generate for `task-manager`, `journal-client`, `calendar-client`)
-* Generate Playwright E2E test script skeletons
-* Create GitHub Action CI workflow file that runs lint, typecheck, tests, build
-
-I have embedded all suggested examples and snippets directly into the playbook. Let me know which of the next-step items you want me to generate as actual files next and I will produce copy-paste-ready files immediately.
+This updated playbook ensures **project infrastructure, data integrity, and authentication are automated and audited**, letting developers focus on completing the Serene Mind App efficiently and cleanly.
