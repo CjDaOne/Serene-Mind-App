@@ -20,14 +20,68 @@ Serene Mind is a personal wellness suite designed to support users managing depr
 ## 🧩 Core Features
 
 - **Dashboard View**: Overview with tasks, mood tracker, and journal insights
-- **Task Management**: Create, edit, complete, and delete tasks with subtasks and AI subtask suggestions
-- **Journaling**: Emotional reflection with mood tracking and AI-powered insights
+- **Task Management**: Add, edit, complete, and delete tasks with AI subtask suggestions
+- **Journaling**: Emotional reflection with AI-powered insights
 - **Calendar View**: Visual task planning and progress tracking
 - **Affirmations**: Daily positive affirmations library
-- **Rewards System**: Achievement tracking and gamification with wellness points
-- **AI Integration**: Subtask suggestions and journal insights via Google Gemini
-- **Authentication**: Secure Google OAuth with session management
-- **Data Persistence**: MongoDB with user-specific data isolation
+- **Rewards System**: Achievement tracking and gamification
+- **Agent Automation**: AI-powered development and infrastructure management
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
+
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks
+- **DB Agent**: MongoDB connection and API validation
+- **Auth Agent**: Authentication flow management
+- **Data Agent**: State management migration
+- **Docs Agent**: Automatic documentation updates
 
 ## 🤖 Agent System
 
@@ -70,21 +124,84 @@ git checkout dev
 npm install
 
 # Set up environment variables
-# Create .env.local with:
-# MONGODB_URI=mongodb://localhost:27017/serene-mind
-# GOOGLE_CLIENT_ID=your_google_client_id
-# GOOGLE_CLIENT_SECRET=your_google_client_secret
-# NEXTAUTH_SECRET=your_random_secret
-# NEXTAUTH_URL=http://localhost:3001
-
-# Start MongoDB (local)
-sudo systemctl start mongod
+cp .env.local.example .env.local
+# Edit .env.local with your Google OAuth and MongoDB credentials
 
 # Run development server
 npm run dev
 ```
 
-App will be available at: [http://localhost:3001](http://localhost:3001)
+App will be available at: [http://localhost:3000](http://localhost:3000)
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
+
+## 🤖 Agent System Usage
+
+```bash
+# Run the core agent to automate infrastructure setup
+node agents/core-agent.ts
+
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
 
 ## 🤖 Agent System Usage
 

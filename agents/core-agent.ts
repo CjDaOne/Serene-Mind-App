@@ -1,5 +1,7 @@
+import dotenv from 'dotenv';
+import path from 'path';
+dotenv.config({ path: path.join(__dirname, '..', '.env.local') });
 import fs from "fs";
-import path from "path";
 import dbAgent from "./subagents/db-agent";
 import authAgent from "./subagents/auth-agent";
 import dataAgent from "./subagents/data-agent";

@@ -1,6 +1,9 @@
 import mongoose from "mongoose";
 import fs from "fs";
 import path from "path";
+import dotenv from 'dotenv';
+
+dotenv.config({ path: path.join(__dirname, '../../.env.local') });
 
 const MONGODB_URI = process.env.MONGODB_URI || "";
 const PROJECT_ROOT = path.join(__dirname, "../..");
