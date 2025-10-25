@@ -1,0 +1,84 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '../auth/[...nextauth]/route';
+import clientPromise from '@/lib/mongodb';
+import { TaskSchema, TaskDTO, fromTaskDTO, toTaskDTO } from '@/lib/domain/task';
+
+export async function GET() {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const client = await clientPromise;
+    const db = client.db('serene-mind');
+
+    const tasks = await db.collection('tasks')
+      .find({ userId: session.user.id })
+      .sort({ createdAt: -1 })
+      .toArray();
+
+    const taskDTOs: TaskDTO[] = tasks.map(task => ({
+      id: task._id.toString(),
+      title: task.title,
+      description: task.description || '',
+      completed: task.completed,
+      dueDate: task.dueDate,
+      priority: task.priority,
+      subtasks: task.subtasks || [],
+    }));
+
+    return NextResponse.json(taskDTOs);
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const validationResult = TaskSchema.safeParse(body);
+
+    if (!validationResult.success) {
+      return NextResponse.json(
+        { error: 'Invalid task data', details: validationResult.error.issues },
+        { status: 400 }
+      );
+    }
+
+    const task = validationResult.data;
+    const client = await clientPromise;
+    const db = client.db('serene-mind');
+
+    const taskDoc = {
+      ...task,
+      userId: session.user.id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+
+    const result = await db.collection('tasks').insertOne(taskDoc);
+
+    const createdTask: TaskDTO = {
+      id: result.insertedId.toString(),
+      title: task.title,
+      description: task.description || '',
+      completed: task.completed,
+      dueDate: task.dueDate.toISOString(),
+      priority: task.priority,
+      subtasks: task.subtasks,
+    };
+
+    return NextResponse.json(createdTask, { status: 201 });
+  } catch (error) {
+    console.error('Error creating task:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+  }
+}

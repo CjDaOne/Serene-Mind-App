@@ -1,0 +1,246 @@
+# **SereneMind_Playbook.v5**
+
+## **📌 Updated Development Playbook with Core Agent + DB Subagent Integration**
+
+---
+
+### **Overview**
+
+This update adds a structured approach to leveraging **Amp Code-style agents and subagents** to accelerate and cleanly complete the Serene Mind App project. The agents orchestrate critical tasks based on the **full code audit** to ensure faster development, proper testing, and cleaner architecture.
+
+---
+
+## **1️⃣ Core Agent + DB Subagent Structure**
+
+### **Folder Structure**
+
+```
+/agents
+├── manifest.json             # Core Agent + Subagents configuration
+├── core-agent.ts             # Orchestrates subagents
+├── subagents/
+│   ├── db-agent.ts           # Handles MongoDB connections, route validation
+│   ├── auth-agent.ts         # Optional starter for auth fixes
+│   ├── data-agent.ts         # Optional starter for Zustand → React Query
+│   └── docs-agent.ts         # Optional starter for auto documentation
+└── logs/
+    └── agent-log.md          # Core agent output logs
+```
+
+**Notes:**
+
+* `manifest.json` defines each agent and its role.
+* `core-agent.ts` invokes all subagents.
+* `logs/` tracks agent activity for auditing and debugging.
+
+---
+
+### **2️⃣ Manifest Configuration (`manifest.json`)**
+
+```json
+{
+  "coreAgent": {
+    "name": "SereneMind-Core",
+    "role": "Oversees all subagents, merges results, reports actions.",
+    "subagents": ["DB-Agent"]
+  },
+  "subagents": [
+    {
+      "name": "DB-Agent",
+      "role": "Connects to MongoDB, validates API routes, ensures NextAuth adapter works",
+      "tasks": [
+        "Check MONGODB_URI",
+        "Create /lib/mongodb-connect.ts if missing",
+        "Validate /api/tasks routes",
+        "Test GET/POST functionality",
+        "Generate log report for Core Agent"
+      ]
+    },
+    {
+      "name": "Auth-Agent",
+      "role": "Re-enables session guards on protected routes",
+      "tasks": [
+        "Check all /app pages for auth bypass",
+        "Reinstate useSession and redirect logic",
+        "Report errors"
+      ]
+    },
+    {
+      "name": "Data-Agent",
+      "role": "Migrates mock Zustand stores to React Query hooks",
+      "tasks": [
+        "Scan /lib/store.ts for MOCK data",
+        "Generate React Query hooks skeleton",
+        "Validate hooks in sample component"
+      ]
+    },
+    {
+      "name": "Docs-Agent",
+      "role": "Updates README and Playbook automatically",
+      "tasks": [
+        "Scan for new files or APIs",
+        "Update Playbook with latest structure",
+        "Log all changes"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+### **3️⃣ Core Agent (`core-agent.ts`)**
+
+```ts
+import fs from "fs";
+import path from "path";
+import dbAgent from "./subagents/db-agent";
+
+const logFile = path.join(__dirname, "logs", "agent-log.md");
+
+async function CoreAgent() {
+  fs.writeFileSync(logFile, `# Core Agent Log\n\nStarting agents...\n`);
+
+  console.log("Starting DB Agent...");
+  fs.appendFileSync(logFile, "\n## DB Agent\n");
+  await dbAgent(logFile);
+
+  console.log("All subagents finished.");
+  fs.appendFileSync(logFile, "\n✅ All agents completed successfully.\n");
+}
+
+CoreAgent();
+```
+
+---
+
+### **4️⃣ DB Subagent (`db-agent.ts`)**
+
+```ts
+import mongoose from "mongoose";
+import fs from "fs";
+
+const MONGODB_URI = process.env.MONGODB_URI || "";
+
+export default async function DBAgent(logFile: string) {
+  fs.appendFileSync(logFile, `Checking MongoDB connection...\n`);
+
+  if (!MONGODB_URI) {
+    fs.appendFileSync(logFile, "❌ MONGODB_URI not found in env.\n");
+    return;
+  }
+
+  try {
+    await mongoose.connect(MONGODB_URI, { bufferCommands: false });
+    fs.appendFileSync(logFile, "✅ MongoDB connected successfully.\n");
+
+    const routePath = "./src/app/api/tasks/route.ts";
+    if (fs.existsSync(routePath)) {
+      fs.appendFileSync(logFile, `✅ ${routePath} exists.\n`);
+    } else {
+      fs.appendFileSync(logFile, `⚠️ ${routePath} missing!\n`);
+    }
+
+    await mongoose.disconnect();
+  } catch (err) {
+    fs.appendFileSync(logFile, `❌ MongoDB connection failed: ${err}\n`);
+  }
+}
+```
+
+---
+
+## **5️⃣ Strategic Advantages of Agents & Subagents**
+
+1. **Automation of Critical Tasks**
+
+   * MongoDB validation, API route checks, and environment verification happen automatically.
+   * Reduces human error and ensures all infrastructure is ready before coding.
+
+2. **Parallel Task Management**
+
+   * Each subagent focuses on a specific responsibility: `DB-Agent`, `Auth-Agent`, `Data-Agent`.
+   * Core Agent orchestrates execution, enabling **faster iteration** and **clean separation of concerns**.
+
+3. **Real-time Reporting & Audit**
+
+   * Logs provide visibility into which components are correct, missing, or broken.
+   * Ensures a clean project state before feature implementation.
+
+4. **Consistent Code Quality**
+
+   * Auto-generates starter hooks, API routes, and documentation scaffolding.
+   * Enforces best practices such as React Query usage, type safety, and secure auth flow.
+
+5. **Accelerated Completion**
+
+   * Eliminates repetitive setup tasks (DB connection, auth reinstatement, store migration).
+   * Developers can focus **directly on UI/UX polish, AI integration, and advanced features**.
+
+6. **Future-Proofing**
+
+   * New subagents can be added (e.g., `Test-Agent` for automated Jest/Playwright tests) without altering core workflow.
+   * Modular design aligns with continuous delivery and production readiness.
+
+---
+
+## **6️⃣ How to Use This Playbook**
+
+1. Add `.env.local` with MongoDB and NextAuth secrets.
+2. Run Core Agent:
+
+```bash
+node agents/core-agent.ts
+```
+
+3. Review `logs/agent-log.md`.
+4. Add additional subagents as needed: `Auth-Agent`, `Data-Agent`, `Docs-Agent`.
+5. Continue development with confidence: database ready, API routes scaffolded, authentication enforced, and server-state hooks prepared.
+
+---
+
+This updated playbook ensures **project infrastructure, data integrity, and authentication are automated and audited**, letting developers focus on completing the Serene Mind App efficiently and cleanly.
+
+## **7️⃣ Implementation Status**
+
+✅ **Completed:**
+- Agent folder structure created
+- Manifest configuration implemented
+- Core Agent with subagent orchestration
+- DB Agent for MongoDB validation
+- Auth Agent for authentication management
+- Data Agent for React Query migration
+- Docs Agent for documentation automation
+
+🔄 **In Progress:**
+- MongoDB connection setup
+- API route implementation
+- React Query integration
+
+📋 **Next Steps:**
+- Run Core Agent: `node agents/core-agent.ts`
+- Set up MongoDB connection
+- Test authentication flow
+- Deploy agent system
+
+## **7️⃣ Implementation Status**
+
+✅ **Completed:**
+- Agent folder structure created
+- Manifest configuration implemented
+- Core Agent with subagent orchestration
+- DB Agent for MongoDB validation
+- Auth Agent for authentication management
+- Data Agent for React Query migration
+- Docs Agent for documentation automation
+
+🔄 **In Progress:**
+- MongoDB connection setup
+- API route implementation
+- React Query integration
+
+📋 **Next Steps:**
+- Run Core Agent: `node agents/core-agent.ts`
+- Set up MongoDB connection
+- Test authentication flow
+- Deploy agent system

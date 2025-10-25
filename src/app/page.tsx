@@ -1,8 +1,13 @@
 
+'use client';
+
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useSession, signIn, signOut } from 'next-auth/react';
 
 export default function LandingPage() {
+  const { data: session } = useSession();
+
   return (
     <div className="bg-gray-50 text-gray-800">
       {/* Header */}
@@ -12,15 +17,18 @@ export default function LandingPage() {
             <span className="text-primary">Serene</span>Mind
           </div>
           <nav className="hidden md:flex space-x-8">
-            <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Features</a>
-            <a href="#how-it-works" className="text-gray-600 hover:text-primary transition-colors">How It Works</a>
-            <a href="#testimonials" className="text-gray-600 hover:text-primary transition-colors">Testimonials</a>
+          <a href="#features" className="text-gray-600 hover:text-primary transition-colors">Features</a>
+          <a href="#how-it-works" className="text-gray-600 hover:text-primary transition-colors">How It Works</a>
+          <a href="#testimonials" className="text-gray-600 hover:text-primary transition-colors">Testimonials</a>
           </nav>
-          <Button asChild>
-            <Link href="/dashboard">
-              Get Started
-            </Link>
-          </Button>
+          {session ? (
+          <div className="flex items-center gap-4">
+          <span>Welcome, {session.user?.name}</span>
+            <Button onClick={() => signOut()}>Logout</Button>
+            </div>
+           ) : (
+             <Button onClick={() => signIn('google')}>Login with Google</Button>
+           )}
         </div>
       </header>
 
@@ -30,15 +38,22 @@ export default function LandingPage() {
         <section className="py-20 md:py-32 bg-white">
           <div className="container mx-auto px-6 text-center">
             <h1 className="text-4xl md:text-6xl font-bold text-gray-800 leading-tight font-headline">
-              Find Your Calm Productivity: <br className="hidden md:block" /> Achieve More, Stress Less. 🌟
+            Find Your Calm Productivity: <br className="hidden md:block" /> Achieve More, Stress Less.
             </h1>
             <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
               Discover a task manager designed for <em>your</em> pace, fostering emotional well-being without judgment or rigid demands.
             </p>
-            <Button asChild size="lg" className="mt-8 text-lg font-semibold hover:scale-105 transition-transform transform">
-              <Link href="/dashboard">
-                Get Started for Free
-              </Link>
+            <Button
+            size="lg"
+            className="mt-8 text-lg font-semibold hover:scale-105 transition-transform transform"
+            onClick={() => session ? null : signIn('google')}
+              asChild={!!session}
+            >
+              {session ? (
+                <Link href="/dashboard">Go to Dashboard</Link>
+              ) : (
+                'Get Started for Free'
+              )}
             </Button>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
                <img src="https://placehold.co/800x400.png" alt="A serene, abstract image representing calm focus" className="rounded-lg object-cover w-full h-full" data-ai-hint="calm abstract" />
@@ -56,7 +71,7 @@ export default function LandingPage() {
               <div>
                 <h3 className="text-2xl font-semibold text-gray-800 mb-4 font-headline">The Problem</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Are you tired of productivity apps that feel like another source of stress? 😩 Do rigid checklists lead to task paralysis, overwhelming you with guilt when you miss a streak? Many tools push a 'hustle culture' that ignores the very real challenges of managing emotions, neurodivergence, or simply having an off day. It's hard to process feelings when you're constantly fighting against self-criticism and the pressure to 'do more, faster.'
+                Are you tired of productivity apps that feel like another source of stress? Do rigid checklists lead to task paralysis, overwhelming you with guilt when you miss a streak? Many tools push a 'hustle culture' that ignores the very real challenges of managing emotions, neurodivergence, or simply having an off day. It's hard to process feelings when you're constantly fighting against self-criticism and the pressure to 'do more, faster.'
                 </p>
               </div>
               <div className="bg-white p-8 rounded-lg shadow-lg">
@@ -79,32 +94,32 @@ export default function LandingPage() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
               {/* Feature 1 */}
               <div className="bg-background p-8 rounded-lg text-center transform hover:-translate-y-2 transition-transform">
-                <div className="text-4xl mb-4">✅</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Achieve Your Goals, Your Way.</h3>
+              <div className="text-4xl mb-4">✓</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Achieve Your Goals, Your Way.</h3>
                 <p className="text-muted-foreground">
                   Easily create tasks and break them down into manageable sub-tasks. Prioritize by importance and urgency, but here's the difference: there are no punitive streaks, 'failed' statuses, or guilt-inducing metrics.
                 </p>
               </div>
               {/* Feature 2 */}
               <div className="bg-background p-8 rounded-lg text-center transform hover:-translate-y-2 transition-transform">
-                <div className="text-4xl mb-4">🧠</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Understand Your Inner World.</h3>
+              <div className="text-4xl mb-4 font-bold">B</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Understand Your Inner World.</h3>
                 <p className="text-muted-foreground">
                   Take a simple mood check-in using intuitive emojis to quickly log how you're feeling. Our free-form journaling space is a safe, non-clinical environment for unburdened self-reflection.
                 </p>
               </div>
               {/* Feature 3 */}
               <div className="bg-background p-8 rounded-lg text-center transform hover:-translate-y-2 transition-transform">
-                <div className="text-4xl mb-4">✨</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Celebrate Every Step Forward.</h3>
+              <div className="text-4xl mb-4 font-bold">*</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Celebrate Every Step Forward.</h3>
                 <p className="text-muted-foreground">
                   Experience our gentle gamified system: earn points for engaging with tasks and journaling. Unlock basic digital rewards and badges, acknowledging your progress. Crucially, we have ABSOLUTELY NO PUNITIVE STREAKS OR METRICS.
                 </p>
               </div>
               {/* Feature 4 */}
               <div className="bg-background p-8 rounded-lg text-center transform hover:-translate-y-2 transition-transform">
-                <div className="text-4xl mb-4">💬</div>
-                <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Shift Your Self-Talk.</h3>
+              <div className="text-4xl mb-4 font-bold">"</div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Shift Your Self-Talk.</h3>
                 <p className="text-muted-foreground">
                   Empower your mind daily with our curated library of positive affirmations. Designed to counter negative self-talk, promote self-belief, and offer gentle inspiration for your day.
                 </p>
@@ -165,10 +180,18 @@ export default function LandingPage() {
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-headline">Ready to Experience Gentle Wellness?</h2>
             <p className="text-lg md:text-xl mb-8 opacity-90">Start your journey towards a more balanced and fulfilling life.</p>
-            <Button asChild size="lg" variant="secondary" className="text-lg font-semibold hover:scale-105 transition-transform transform">
-              <Link href="/dashboard">
-                Start Now! 🚀
-              </Link>
+            <Button
+            size="lg"
+            variant="secondary"
+            className="text-lg font-semibold hover:scale-105 transition-transform transform"
+              onClick={() => session ? null : signIn('google')}
+              asChild={!!session}
+            >
+              {session ? (
+              <Link href="/dashboard">Start Now!</Link>
+              ) : (
+              'Start Now!'
+              )}
             </Button>
           </div>
         </section>

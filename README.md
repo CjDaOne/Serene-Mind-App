@@ -1,193 +1,122 @@
-
-
 # 🌿 Serene Mind App
 
-**Empowering wellness through self-awareness, reflection, and productivity.**  
+**Empowering wellness through self-awareness, reflection, and productivity.**
+
 Serene Mind is a personal wellness suite designed to support users managing depression, anxiety, and PTSD. It combines **task management**, **journaling**, and **mood tracking** into a unified experience.
 
 ---
 
-## 🧠 Current Version: Vite + React Prototype (Stable for Viewing)
+## 🧠 Current Version: Next.js Production Build
 
-This branch (`main`) contains the **prototype** version built with **Vite, React, TailwindCSS, and ShadCN UI**.  
-It remains live for demonstration and feedback purposes while migration to **Next.js** is in progress.
-
-### 🔗 Live Prototype
-👉 [View Live App (Prototype)](https://serenemindapp.netlify.app/
-
-> **Note:** This version remains intact and deployable.  
-> All migration work will occur in a **separate branch** (`nextjs-migration`) to ensure uninterrupted prototype viewing.
+* Framework: **Next.js 15** with App Router, TypeScript, and TailwindCSS
+* UI: ShadCN UI components with custom design system
+* AI: Google Genkit + Gemini API for insights and suggestions
+* Auth: NextAuth.js with Google OAuth
+* Database: MongoDB with user data isolation
+* Deployment: Vercel-ready configuration
 
 ---
 
-## 🚀 Upcoming Migration: Next.js + Vercel Production Build
+## 🧩 Core Features
 
-The next milestone is a **production-ready Next.js migration** for scalability, performance, and modern deployment.
+- **Dashboard View**: Overview with tasks, mood tracker, and journal insights
+- **Task Management**: Create, edit, complete, and delete tasks with subtasks and AI subtask suggestions
+- **Journaling**: Emotional reflection with mood tracking and AI-powered insights
+- **Calendar View**: Visual task planning and progress tracking
+- **Affirmations**: Daily positive affirmations library
+- **Rewards System**: Achievement tracking and gamification with wellness points
+- **AI Integration**: Subtask suggestions and journal insights via Google Gemini
+- **Authentication**: Secure Google OAuth with session management
+- **Data Persistence**: MongoDB with user-specific data isolation
 
-### ✅ Migration Goals
-- Convert frontend from **Vite + React** → **Next.js 15 (App Router)**  
-- Maintain styling with **TailwindCSS + ShadCN UI**  
-- Integrate **NextAuth.js** for authentication  
-- Connect to **MongoDB Atlas** via **Mongoose**  
-- Add AI-powered journaling features with **Google Genkit / Gemini API**  
-- Implement **vector search and LangChain.js** integration for enhanced journaling insights  
-- Prepare for **Vercel deployment** with PWA support  
+## 🤖 Agent System
+
+- **Core Agent**: Orchestrates development tasks and infrastructure validation
+- **DB Agent**: MongoDB connection validation and API route checks
+- **Auth Agent**: Authentication flow management and session verification
+- **Data Agent**: State management migration and React Query integration
+- **Docs Agent**: Automated documentation updates and project maintenance
 
 ---
 
 ## 🧩 Tech Stack
 
-| Layer | Technology |
-|-------|-------------|
-| Frontend | React (Vite prototype) → Next.js (production) |
-| Styling | TailwindCSS + ShadCN/UI |
-| Backend | Express + MongoDB (to be integrated into Next.js API routes) |
-| Auth | NextAuth.js |
-| AI Layer | Google Genkit + Gemini + LangChain.js |
-| Deployment | Vercel |
-| Database | MongoDB Atlas |
-| Dev Tools | Git, GitHub, VS Code, ESLint, Prettier |
+| Layer      | Technology                              |
+| ---------- | --------------------------------------- |
+| Frontend   | Next.js 15 (App Router) + TypeScript    |
+| Styling    | TailwindCSS + ShadCN UI                 |
+| Backend    | Next.js API routes                      |
+| Auth       | NextAuth.js                             |
+| AI Layer   | Google Genkit + Gemini API              |
+| Database   | MongoDB with user data isolation        |
+| State      | Zustand + React Query                   |
+| Testing    | Jest + Testing Library                  |
+| Automation | Custom Agent System                     |
+| Deployment | Vercel                                  |
 
 ---
 
-## 🧱 Local Setup (Prototype)
+## 🧱 Local Development Setup
 
 ```bash
-# 1. Clone repo
+# Clone repository
 git clone https://github.com/CjDaOne/Serene-Mind-App.git
 cd Serene-Mind-App
 
-# 2. Install dependencies
+# Switch to development branch
+git checkout dev
+
+# Install dependencies
 npm install
 
-# 3. Run locally
+# Set up environment variables
+# Create .env.local with:
+# MONGODB_URI=mongodb://localhost:27017/serene-mind
+# GOOGLE_CLIENT_ID=your_google_client_id
+# GOOGLE_CLIENT_SECRET=your_google_client_secret
+# NEXTAUTH_SECRET=your_random_secret
+# NEXTAUTH_URL=http://localhost:3001
+
+# Start MongoDB (local)
+sudo systemctl start mongod
+
+# Run development server
 npm run dev
+```
 
-App will be available at:
-👉 http://localhost:5173
+App will be available at: [http://localhost:3001](http://localhost:3001)
 
+## 🤖 Agent System Usage
 
----
+```bash
+# Run the complete agent system for infrastructure validation
+npx tsx agents/core-agent.ts
 
-🌐 Migration Branch Setup (Next.js)
+# Check agent execution logs
+cat agents/logs/agent-log.md
+```
 
-To start the migration safely while keeping the prototype live:
+## 🚀 AI Development
 
-# 1. Create and switch to new branch
-git checkout -b nextjs-migration
+```bash
+# Run AI flows locally
+npm run genkit:dev
+```
 
-# 2. Initialize new Next.js project
-npx create-next-app@latest .
-
-# 3. Reinstall core dependencies
-npm install tailwindcss @shadcn/ui lucide-react next-auth mongoose dotenv
-
-Then follow the migration checklist below 👇
-
-
----
-
-🧭 Migration Checklist
-
-🗂️ Project Setup
-
-[ ] Create nextjs-migration branch
-
-[ ] Scaffold Next.js app (app/ directory with App Router)
-
-[ ] Configure TailwindCSS and ShadCN UI
-
-[ ] Add TypeScript (optional for scalability)
-
-[ ] Set up base layout and navigation
-
-
-🔐 Authentication
-
-[ ] Install and configure NextAuth.js
-
-[ ] Add MongoDB adapter for NextAuth
-
-[ ] Create /api/auth/[...nextauth]/route.js
-
-
-🧰 Database + Models
-
-[ ] Create MongoDB connection helper in lib/mongodb.js
-
-[ ] Add Task, Journal, and Mood models
-
-[ ] Test API route for DB connection
-
-
-🧱 Features Migration
-
-[ ] Port Task Manager component to Next.js client component
-
-[ ] Migrate Mood Tracker to /dashboard/mood
-
-[ ] Migrate Journal Modal to /dashboard/journal
-
-[ ] Test CRUD operations with MongoDB
-
-
-🤖 AI Integration
-
-[ ] Integrate Google Genkit SDK
-
-[ ] Add journaling insights via Gemini API
-
-[ ] Implement vector search with LangChain.js
-
-
-📦 Deployment
-
-[ ] Configure environment variables on Vercel
-
-[ ] Enable PWA manifest + service worker
-
-[ ] Deploy to production with preview URL
-
-
-
----
-
-🧑‍💻 Developer Guide
-
-Action	Command
-
-Install dependencies	npm install
-Start development server	npm run dev
-Build for production	npm run build
-Lint code	npm run lint
-
-
-
----
-
-🧾 License
+## 🧾 License
 
 MIT License © 2025 Carl’averis Jackson
 
+---
+
+## 💬 Contributing
+
+Contributions, suggestions, and pull requests are welcome! Please open an issue before submitting PRs for discussion.
 
 ---
 
-💬 Contributing
+## 🪴 Notes
 
-Contributions, suggestions, and pull requests are welcome!
-Please open an issue before submitting PRs for discussion.
-
-
----
-
-🪴 Notes
-
-> The Serene Mind project is part of an ongoing mission to support emotional wellness through thoughtful technology.
-Each iteration brings us closer to a fully accessible, AI-assisted wellness platform.
-
-
-
----
-
+The Serene Mind project is part of an ongoing mission to support emotional wellness through thoughtful technology. Each iteration brings us closer to a fully accessible, AI-assisted wellness platform.
 
 

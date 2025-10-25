@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { MOCK_JOURNAL_ENTRIES } from '@/lib/data';
+import { useState, useEffect } from 'react';
+import { useJournalStore } from '@/lib/store';
 import type { JournalEntry, Mood } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,7 @@ const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
 ];
 
 export default function JournalClient() {
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>(MOCK_JOURNAL_ENTRIES);
+  const { entries: journalEntries, addEntry, fetchEntries } = useJournalStore();
   const [newEntryContent, setNewEntryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood>('Happy');
   const [insights, setInsights] = useState('');
@@ -33,15 +33,17 @@ export default function JournalClient() {
   const [isAddEntryDialogOpen, setAddEntryDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
+
   const handleAddEntry = () => {
     if (newEntryContent.trim()) {
-      const newEntry: JournalEntry = {
-        id: Date.now().toString(),
+      addEntry({
         date: new Date(),
         mood: selectedMood,
         content: newEntryContent,
-      };
-      setJournalEntries(prev => [newEntry, ...prev]);
+      });
       setNewEntryContent('');
       setSelectedMood('Happy');
       toast({ title: 'Journal entry saved!' });

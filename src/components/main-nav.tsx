@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from './ui/sidebar';
 import { Award, BookText, Calendar, CheckSquare, LayoutDashboard, Sparkles, LogOut } from 'lucide-react';
 import Link from 'next/link';
+import { signOut } from 'next-auth/react';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -33,12 +34,10 @@ export function MainNav() {
         </SidebarMenuItem>
       ))}
       <SidebarMenuItem>
-        <Link href="/" className="w-full">
-          <SidebarMenuButton tooltip="Sign Out">
-            <LogOut className="h-5 w-5" />
-            <span className="font-medium">Sign Out</span>
-          </SidebarMenuButton>
-        </Link>
+      <SidebarMenuButton tooltip="Sign Out" onClick={() => signOut()}>
+      <LogOut className="h-5 w-5" />
+      <span className="font-medium">Sign Out</span>
+      </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
   );
