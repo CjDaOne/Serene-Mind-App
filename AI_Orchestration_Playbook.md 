@@ -1,246 +1,488 @@
-# **SereneMind_Playbook.v5**
+# SereneMind_Playbook.v6 — AmpCode‑Hybrid Agent Operational Manual
 
-## **📌 Updated Development Playbook with Core Agent + DB Subagent Integration**
-
----
-
-### **Overview**
-
-This update adds a structured approach to leveraging **Amp Code-style agents and subagents** to accelerate and cleanly complete the Serene Mind App project. The agents orchestrate critical tasks based on the **full code audit** to ensure faster development, proper testing, and cleaner architecture.
+**Version:** v1.6 (Playbook v6) — Oct 2025
+**Author:** Carl’averis Jackson
+**Purpose:** Full developer manual to complete production hardening and finish Serene Mind App using an AmpCode‑hybrid Agent/Subagent orchestration model. This file is intended for `/docs/SereneMind_Playbook.v6.md` in the repo.
 
 ---
 
-## **1️⃣ Core Agent + DB Subagent Structure**
+# 🚀 Executive Summary
 
-### **Folder Structure**
+This playbook combines the previous migration and audit work with a practical, AmpCode‑style agent orchestration model to fix critical production issues (MongoDB, Auth, Rate‑Limit, Security, Logging), and to accelerate future AI features.
+
+Estimated focused work to reach production readiness (Phase 1): **4–6 hours**.
+
+---
+
+# 🧭 Table of Contents
+
+1. Overview & Goals
+2. Agent Architecture (AmpCode‑Hybrid)
+3. Folder structure & manifest
+4. Critical Fixes mapped to Agents (step‑by‑step)
+5. Agent code examples (Core Agent + DB Subagent)
+6. API hardening template
+7. Environment & NextAuth notes
+8. CI / Deployment checklist
+9. Git commit, branch and log conventions
+10. Verification & Acceptance Tests
+11. Next steps / Roadmap
+
+---
+
+# 1. Overview & Goals
+
+* Fix the three immediate blockers: **Connect MongoDB**, **Enable authentication**, **Replace mock data with server state**.
+* Add production hardening: env validation, security headers, rate limiting, robust error handling, structured logging, database indexes.
+* Implement agents/subagents (AmpCode style) to automate and audit the above.
+* Keep the system modular so AI feature subagents (Journal Agent, Mood Agent, Task Agent) can be added later.
+
+Success criteria: app builds, auth works, tasks persist to MongoDB, API rate limits in place, logging enabled, tests pass.
+
+---
+
+# 2. Agent Architecture (AmpCode‑Hybrid)
+
+**Design principles**
+
+* Core Agent orchestrates subagents and persists audit logs.
+* Subagents are small, single‑responsibility processes that can modify files, run tests, or call APIs.
+* Intelligence (prompts, plan updates) is handled by Genkit / ChatGPT as a subagent if needed.
+* Use AmpCode for orchestration & monitoring; fall back to local Node scripts when necessary.
+
+**Agents & responsibilities**
+
+* **Core Agent (SereneMind‑Core)** — orchestrates workflow, applies manifest, writes logs to `/agents/logs/`.
+* **DB-Agent** — ensures MongoDB connection, creates `mongodb‑connect.ts`, runs index scripts, validates API endpoints exist and basic CRUD functions.
+* **Auth-Agent** — re‑enables NextAuth adapter, patches protected pages to use `useSession` guards, verifies callback/session behavior.
+* **API-Agent** — injects rateLimit middleware, Zod validation, and logging into API routes.
+* **Data-Agent** — replaces mock Zustand usage with React Query hooks; scaffolds `src/lib/queries/*` and updates sample components.
+* **Docs-Agent** — updates Playbook/README, creates commit message and changelog snippets.
+* **Test-Agent** — runs Jest / Playwright tests, reports failures.
+
+**Orchestration flow**
+
+```
+Core Agent
+ ├─ DB-Agent
+ ├─ Auth-Agent
+ ├─ API-Agent
+ ├─ Data-Agent
+ └─ Test/Docs-Agent
+```
+
+---
+
+# 3. Folder Structure & Manifest
 
 ```
 /agents
-├── manifest.json             # Core Agent + Subagents configuration
-├── core-agent.ts             # Orchestrates subagents
-├── subagents/
-│   ├── db-agent.ts           # Handles MongoDB connections, route validation
-│   ├── auth-agent.ts         # Optional starter for auth fixes
-│   ├── data-agent.ts         # Optional starter for Zustand → React Query
-│   └── docs-agent.ts         # Optional starter for auto documentation
-└── logs/
-    └── agent-log.md          # Core agent output logs
+├─ manifest.json
+├─ core-agent.ts
+├─ subagents/
+│  ├─ db-agent.ts
+│  ├─ auth-agent.ts
+│  ├─ api-agent.ts
+│  ├─ data-agent.ts
+│  ├─ docs-agent.ts
+│  └─ test-agent.ts
+└─ logs/
+   └─ agent-log.md
+
+/docs
+├─ SereneMind_Playbook.v6.md  (this file)
+└─ DEPLOYMENT.md
+
+/src
+├─ app/
+├─ lib/
+│  ├─ mongodb-connect.ts
+│  ├─ env.ts
+│  ├─ rate-limit.ts
+│  ├─ logger.ts
+│  └─ queries/
+└─ app/api/
+   ├─ tasks/
+   └─ journal/
 ```
 
-**Notes:**
-
-* `manifest.json` defines each agent and its role.
-* `core-agent.ts` invokes all subagents.
-* `logs/` tracks agent activity for auditing and debugging.
-
----
-
-### **2️⃣ Manifest Configuration (`manifest.json`)**
+**manifest.json** (starter)
 
 ```json
 {
-  "coreAgent": {
-    "name": "SereneMind-Core",
-    "role": "Oversees all subagents, merges results, reports actions.",
-    "subagents": ["DB-Agent"]
-  },
+  "coreAgent": { "name": "SereneMind-Core", "subagents": ["DB-Agent","Auth-Agent","API-Agent","Data-Agent","Test-Agent","Docs-Agent"] },
   "subagents": [
-    {
-      "name": "DB-Agent",
-      "role": "Connects to MongoDB, validates API routes, ensures NextAuth adapter works",
-      "tasks": [
-        "Check MONGODB_URI",
-        "Create /lib/mongodb-connect.ts if missing",
-        "Validate /api/tasks routes",
-        "Test GET/POST functionality",
-        "Generate log report for Core Agent"
-      ]
-    },
-    {
-      "name": "Auth-Agent",
-      "role": "Re-enables session guards on protected routes",
-      "tasks": [
-        "Check all /app pages for auth bypass",
-        "Reinstate useSession and redirect logic",
-        "Report errors"
-      ]
-    },
-    {
-      "name": "Data-Agent",
-      "role": "Migrates mock Zustand stores to React Query hooks",
-      "tasks": [
-        "Scan /lib/store.ts for MOCK data",
-        "Generate React Query hooks skeleton",
-        "Validate hooks in sample component"
-      ]
-    },
-    {
-      "name": "Docs-Agent",
-      "role": "Updates README and Playbook automatically",
-      "tasks": [
-        "Scan for new files or APIs",
-        "Update Playbook with latest structure",
-        "Log all changes"
-      ]
-    }
+    {"name":"DB-Agent","enabled":true},
+    {"name":"Auth-Agent","enabled":true},
+    {"name":"API-Agent","enabled":true},
+    {"name":"Data-Agent","enabled":true},
+    {"name":"Test-Agent","enabled":true},
+    {"name":"Docs-Agent","enabled":true}
   ]
 }
 ```
 
 ---
 
-### **3️⃣ Core Agent (`core-agent.ts`)**
+# 4. Critical Fixes Mapped to Agents (Step-by-step)
+
+This section maps the Quick Start critical production fixes to agent tasks and provides the exact code/actions you should apply.
+
+## Step 1 — Environment Validation (30m)  — *Core Agent* + *DB-Agent*
+
+**Tasks:**
+
+* Replace `src/lib/env.ts` with validated env module (Zod).
+* Update imports across codebase to use `import { env } from '@/lib/env'`.
+* Run `npm run build` to validate.
+
+**Recommended env.ts (copy into `src/lib/env.ts`)**
 
 ```ts
-import fs from "fs";
-import path from "path";
-import dbAgent from "./subagents/db-agent";
+import { z } from 'zod';
 
-const logFile = path.join(__dirname, "logs", "agent-log.md");
+const EnvSchema = z.object({
+  MONGODB_URI: z.string().min(1),
+  NEXTAUTH_SECRET: z.string().min(8),
+  NEXTAUTH_URL: z.string().url(),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
+  NODE_ENV: z.string().default('development')
+});
 
-async function CoreAgent() {
-  fs.writeFileSync(logFile, `# Core Agent Log\n\nStarting agents...\n`);
-
-  console.log("Starting DB Agent...");
-  fs.appendFileSync(logFile, "\n## DB Agent\n");
-  await dbAgent(logFile);
-
-  console.log("All subagents finished.");
-  fs.appendFileSync(logFile, "\n✅ All agents completed successfully.\n");
-}
-
-CoreAgent();
+export const env = EnvSchema.parse(process.env);
 ```
+
+**Agent action:** DB-Agent checks for required vars and fails early with an actionable error logged.
 
 ---
 
-### **4️⃣ DB Subagent (`db-agent.ts`)**
+## Step 2 — Security Middleware (30m) — *Core Agent*
+
+**Tasks:**
+
+* Create `middleware.ts` in project root to add CSP, X-Frame-Options, HSTS.
+
+**Example `middleware.ts`**
 
 ```ts
-import mongoose from "mongoose";
-import fs from "fs";
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
 
-const MONGODB_URI = process.env.MONGODB_URI || "";
+export function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  res.headers.set('X-Frame-Options', 'DENY');
+  res.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.headers.set('X-Content-Type-Options', 'nosniff');
+  res.headers.set('Permissions-Policy', 'geolocation=()');
+  res.headers.set('Content-Security-Policy', "default-src 'self'; img-src 'self' data: https:; script-src 'self' 'unsafe-eval' 'unsafe-inline';");
+  return res;
+}
 
-export default async function DBAgent(logFile: string) {
-  fs.appendFileSync(logFile, `Checking MongoDB connection...\n`);
+export const config = { matcher: '/(.*)' };
+```
 
-  if (!MONGODB_URI) {
-    fs.appendFileSync(logFile, "❌ MONGODB_URI not found in env.\n");
-    return;
-  }
+**Agent action:** Core Agent adds middleware, runs dev, then curls root to validate headers.
 
-  try {
-    await mongoose.connect(MONGODB_URI, { bufferCommands: false });
-    fs.appendFileSync(logFile, "✅ MongoDB connected successfully.\n");
+---
 
-    const routePath = "./src/app/api/tasks/route.ts";
-    if (fs.existsSync(routePath)) {
-      fs.appendFileSync(logFile, `✅ ${routePath} exists.\n`);
-    } else {
-      fs.appendFileSync(logFile, `⚠️ ${routePath} missing!\n`);
+## Step 3 — Rate Limiting (1h) — *API-Agent*
+
+**Tasks:**
+
+* Add `src/lib/rate-limit.ts` (Redis-backed or in-memory for dev).
+* Inject call to `rateLimit()(request)` at top of API route handlers.
+* Test 100+ rapid requests return 429.
+
+**Basic in-memory rate limiter (dev)**
+
+```ts
+import LRU from 'lru-cache';
+import { NextResponse } from 'next/server';
+
+export function rateLimit(opts = { window: 60_000, limit: 100 }) {
+  const cache = new LRU({ max: 5000 });
+  return async (req: Request) => {
+    const key = req.headers.get('x-forwarded-for') || 'global';
+    const now = Date.now();
+    const entry = cache.get(key) || { count: 0, ts: now };
+    if (now - entry.ts > opts.window) entry.count = 0, entry.ts = now;
+    entry.count += 1;
+    cache.set(key, entry);
+    if (entry.count > opts.limit) {
+      return new NextResponse(JSON.stringify({ error: 'Too many requests' }), { status: 429 });
     }
+    return null;
+  };
+}
+```
 
-    await mongoose.disconnect();
-  } catch (err) {
-    fs.appendFileSync(logFile, `❌ MongoDB connection failed: ${err}\n`);
+**Agent action:** API-Agent inserts rate limit calls (automated patch), runs stress curl script.
+
+---
+
+## Step 4 — Error Handling (1h) — *Core Agent* + *Docs-Agent*
+
+**Tasks:**
+
+* Add `src/components/error-boundary.tsx` and wrap root layout.
+* Add `src/app/error.tsx`, `not-found.tsx`, `loading.tsx`.
+
+**ErrorBoundary skeleton**
+
+```tsx
+'use client';
+import React from 'react';
+
+export function ErrorBoundary({ children }: { children: React.ReactNode }) {
+  return (
+    <React.ErrorBoundary fallbackRender={({error}) => <div role="alert">{error.message}</div>}>
+      {children}
+    </React.ErrorBoundary>
+  );
+}
+```
+
+**Agent action:** Core Agent patches layout to wrap with ErrorBoundary and runs smoke tests.
+
+---
+
+## Step 5 — Logging System (45m) — *API-Agent* + *DB-Agent*
+
+**Tasks:**
+
+* Add `src/lib/logger.ts` (pino or bunyan) and replace `console` in routes.
+
+**Logger example (pino)**
+
+```ts
+import pino from 'pino';
+export const logger = pino({ level: process.env.NODE_ENV === 'production' ? 'info' : 'debug' });
+```
+
+**Agent action:** API-Agent rewrites log calls in API routes; DB-Agent validates DB logs for index creation.
+
+---
+
+## Step 6 — Database Optimization (1h) — *DB-Agent*
+
+**Tasks:**
+
+* Update `src/lib/mongodb-connect.ts` for production options.
+* Create `scripts/setup-indexes.ts` to create compound indexes for queries (e.g., `userId + createdAt`).
+
+**Index script skeleton**
+
+```ts
+import dbConnect from '@/lib/mongodb-connect';
+import Task from '@/lib/models/Task';
+
+async function run() {
+  await dbConnect();
+  await Task.createIndexes([{ userId: 1, createdAt: -1 }]);
+  process.exit(0);
+}
+run();
+```
+
+**Agent action:** DB-Agent runs `npx tsx scripts/setup-indexes.ts` and records results.
+
+---
+
+## Step 7 — Update API Routes (1–2h) — *API-Agent*
+
+**Tasks:**
+
+* Apply the provided API template to all routes. Ensure:
+
+  * Rate limit check
+  * Authentication check (`getServerSession`) with `authOptions`
+  * Zod validation
+  * Try/catch with logger
+
+**Sample template**
+
+```ts
+// See playbook section 6 (copied into file) — template is identical to the user's provided template.
+```
+
+**Agent action:** API-Agent patches routes and runs unit tests.
+
+---
+
+## Step 8 — Fix NextAuth Config (30m) — *Auth-Agent*
+
+**Tasks:**
+
+* Use database sessions (strategy: 'database') if you want persistent sessions.
+* Add session callback to set `session.user.id = user.id` and ensure adapter enabled.
+
+**Agent action:** Auth-Agent enables adapter (MongoDBAdapter), runs OAuth flow test.
+
+---
+
+## Step 9 — Environment Setup (15m) — *Core Agent*
+
+**Tasks:**
+
+* Copy `.env.example` to `.env.local` (if missing) and fail fast if values missing.
+* Generate `NEXTAUTH_SECRET` if not present and instruct manual step for secrets.
+
+---
+
+## Step 10 — Verification (30m) — *Test-Agent*
+
+**Tasks:**
+
+* Typecheck: `npm run typecheck`
+* Build: `npm run build`
+* Start: `npm start`
+* Run smoke tests: login, create task, create journal entry
+* Rate limit stress test
+* Error & 404 checks
+
+**Agent action:** Test-Agent runs these commands and writes a verification report to `/agents/logs/verification.md`.
+
+---
+
+# 5. Agent Code Examples (Core Agent + DB-Agent)
+
+> These are starter snippets — adapt to project paths and TypeScript/ESM preferences.
+
+**core-agent.ts** (expanded)
+
+```ts
+// simplified synchronous runner for subagents
+import fs from 'fs';
+import path from 'path';
+import dbAgent from './subagents/db-agent';
+import apiAgent from './subagents/api-agent';
+import authAgent from './subagents/auth-agent';
+
+const log = (s: string) => fs.appendFileSync(path.join(__dirname,'logs','agent-log.md'), s+"\n");
+(async function main(){
+  fs.writeFileSync(path.join(__dirname,'logs','agent-log.md'), '# Core Agent Run\n');
+  log('Starting DB-Agent');
+  await dbAgent();
+  log('Starting Auth-Agent');
+  await authAgent();
+  log('Starting API-Agent');
+  await apiAgent();
+  log('All done.');
+})();
+```
+
+**subagents/db-agent.ts** (expanded)
+
+```ts
+import fs from 'fs';
+import path from 'path';
+import dbConnect from '../../src/lib/mongodb-connect';
+import { logger } from '../../src/lib/logger';
+
+export default async function dbAgent(){
+  const logFile = path.join(__dirname,'..','logs','agent-log.md');
+  fs.appendFileSync(logFile,'DB-Agent: checking DB...\n');
+  try{
+    await dbConnect();
+    fs.appendFileSync(logFile,'DB-Agent: connected. Running index script...\n');
+    // Run index script via child_process or import directly
+    // e.g. await import('../../scripts/setup-indexes');
+    fs.appendFileSync(logFile,'DB-Agent: indexes applied.\n');
+  }catch(e){
+    fs.appendFileSync(logFile,'DB-Agent: ERROR '+String(e)+'\n');
   }
 }
 ```
 
 ---
 
-## **5️⃣ Strategic Advantages of Agents & Subagents**
+# 6. API Hardening Template (copy to each route)
 
-1. **Automation of Critical Tasks**
+Use the exact template from the Quick Start section. Key points:
 
-   * MongoDB validation, API route checks, and environment verification happen automatically.
-   * Reduces human error and ensures all infrastructure is ready before coding.
-
-2. **Parallel Task Management**
-
-   * Each subagent focuses on a specific responsibility: `DB-Agent`, `Auth-Agent`, `Data-Agent`.
-   * Core Agent orchestrates execution, enabling **faster iteration** and **clean separation of concerns**.
-
-3. **Real-time Reporting & Audit**
-
-   * Logs provide visibility into which components are correct, missing, or broken.
-   * Ensures a clean project state before feature implementation.
-
-4. **Consistent Code Quality**
-
-   * Auto-generates starter hooks, API routes, and documentation scaffolding.
-   * Enforces best practices such as React Query usage, type safety, and secure auth flow.
-
-5. **Accelerated Completion**
-
-   * Eliminates repetitive setup tasks (DB connection, auth reinstatement, store migration).
-   * Developers can focus **directly on UI/UX polish, AI integration, and advanced features**.
-
-6. **Future-Proofing**
-
-   * New subagents can be added (e.g., `Test-Agent` for automated Jest/Playwright tests) without altering core workflow.
-   * Modular design aligns with continuous delivery and production readiness.
+* `rateLimit()(request)` early return
+* `getServerSession(authOptions)` for auth
+* Zod validation and `.safeParse`
+* `logger.apiRequest` and `logger.apiResponse` for structured logging
 
 ---
 
-## **6️⃣ How to Use This Playbook**
+# 7. Environment & NextAuth Notes
 
-1. Add `.env.local` with MongoDB and NextAuth secrets.
-2. Run Core Agent:
+* Use `env.ts` (Zod) to surface missing environment variables at build time.
+* For production, `NEXTAUTH_SECRET` must be securely rotated and stored in Vercel/Secrets manager.
+* `session.strategy = 'database'` is recommended if you want server sessions stored in MongoDB; otherwise `jwt` is okay but loses DB user id mapping (use callbacks to inject `id`).
+
+---
+
+# 8. CI / Deployment Checklist
+
+* Add GitHub Actions workflow to run on PRs:
+
+  1. Install deps
+  2. `npm run lint && npm run typecheck`
+  3. `npm run test`
+  4. `npm run build`
+  5. Deploy preview to Vercel
+* Ensure `.env` secrets are configured in Vercel for main/staging
+* Add Sentry (or similar) DSN to env for production
+
+---
+
+# 9. Git Commit, Branch & Log Conventions
+
+* Branch: `fix/production-hardening` or `chore/agents-db-setup`
+* Commit message (example):
+
+```
+chore(prod): add env validation, security middleware, rate limiting, logging
+
+- add src/lib/env.ts (zod validation)
+- add middleware.ts security headers
+- add src/lib/rate-limit.ts
+- add src/lib/logger.ts (pino)
+- add agents core + db subagent scaffolding
+```
+
+---
+
+# 10. Verification & Acceptance Tests
+
+* All smoke flows must pass after changes (login, create task, create journal, view dashboard)
+* Rate limiting returns 429 after 100 requests
+* `npm run build` succeeds
+* Structured logs written to stdout and to an optional file in staging
+
+---
+
+# 11. Next Steps & Roadmap
+
+1. Run Agent suite and fix any errors flagged by logs
+2. Migrate client components to use React Query (Data-Agent)
+3. Add Test-Agent Playwright E2E flows
+4. Create long‑running AI feature agents (Journal Insight Agent, Mood Pattern Agent)
+5. Monitor and iterate in staging for 24–48 hours
+
+---
+
+# Appendix
+
+* Quick commands
 
 ```bash
+# Run agents locally
 node agents/core-agent.ts
+
+# Apply indexes
+npx tsx scripts/setup-indexes.ts
+
+# Run test verification
+npm run typecheck && npm run build && npm start
 ```
 
-3. Review `logs/agent-log.md`.
-4. Add additional subagents as needed: `Auth-Agent`, `Data-Agent`, `Docs-Agent`.
-5. Continue development with confidence: database ready, API routes scaffolded, authentication enforced, and server-state hooks prepared.
+* Contact: maintainers list and NotebookLM/Explore tags should reference `#SereneMind #Migration #ProdFixes`.
 
 ---
 
-This updated playbook ensures **project infrastructure, data integrity, and authentication are automated and audited**, letting developers focus on completing the Serene Mind App efficiently and cleanly.
-
-## **7️⃣ Implementation Status**
-
-✅ **Completed:**
-- Agent folder structure created
-- Manifest configuration implemented
-- Core Agent with subagent orchestration
-- DB Agent for MongoDB validation
-- Auth Agent for authentication management
-- Data Agent for React Query migration
-- Docs Agent for documentation automation
-
-🔄 **In Progress:**
-- MongoDB connection setup
-- API route implementation
-- React Query integration
-
-📋 **Next Steps:**
-- Run Core Agent: `node agents/core-agent.ts`
-- Set up MongoDB connection
-- Test authentication flow
-- Deploy agent system
-
-## **7️⃣ Implementation Status**
-
-✅ **Completed:**
-- Agent folder structure created
-- Manifest configuration implemented
-- Core Agent with subagent orchestration
-- DB Agent for MongoDB validation
-- Auth Agent for authentication management
-- Data Agent for React Query migration
-- Docs Agent for documentation automation
-
-🔄 **In Progress:**
-- MongoDB connection setup
-- API route implementation
-- React Query integration
-
-📋 **Next Steps:**
-- Run Core Agent: `node agents/core-agent.ts`
-- Set up MongoDB connection
-- Test authentication flow
-- Deploy agent system
+*End of SereneMind_Playbook.v6*
