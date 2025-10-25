@@ -1,240 +1,569 @@
-# Serene-Mind-App Master Operational Playbook (v1.2 — Oct 2025)
+# Serene-Mind-App Master Operational Playbook (v1.3 — Oct 2025)
 
 **Updates:**
 
-* Merged high-level project overview from 🌿 Serene Mind App
-* Added production-ready scripts, testing setup, and PWA config
-* AI workflow fully integrated with NotebookLM/Explore
-* Unified developer onboarding and operational guidance
+* Integrated comprehensive code review findings from `dev` branch
+* Added blocking fixes, production-ready API routes, DB connections, React Query migration examples, and security notes
+* Included copy-paste ready files: MongoDB connector, API routes for tasks (including id/toggle), React Query hooks, protected-route examples, NextAuth enablement snippet, .env.local example, and Jest test skeletons
 
 ---
 
-## 🌿 Project Overview
+## Executive Summary (from code review)
 
-**Empowering wellness through self-awareness, reflection, and productivity.**
-Serene Mind is a personal wellness suite designed to support users managing depression, anxiety, and PTSD. It combines **task management**, **journaling**, and **mood tracking** into a unified experience.
-
-### Current Version: Vite + React Prototype
-
-* Branch: `main` contains the Vite/React prototype
-* Tech: Vite, React, TailwindCSS, ShadCN UI
-* Live demo: [View Live App (Prototype)](https://serenemindapp.netlify.app/)
-* Migration work occurs on separate branch `dev` / `nextjs-migration`
-
-### Upcoming Migration: Next.js + Vercel Production
-
-* Convert frontend from Vite + React → Next.js 15 App Router
-* Styling: TailwindCSS + ShadCN UI
-* Authentication: NextAuth.js
-* Database: MongoDB Atlas via Mongoose
-* AI: Google Genkit / Gemini API, vector search via LangChain.js
-* Deployment: Vercel with PWA support
+* **Overall score:** 7.5/10 — Solid Next.js 15 app, AI & testing present, but **MongoDB not connected**, **authentication bypassed**, and **mocked state** still in use. These are blocking for production.
+* **Immediate priorities:** Connect MongoDB, re-enable authentication, replace mock state with React Query + API routes.
 
 ---
 
-## 1️⃣ Repository & Branch Setup
+## Critical Fixes & Code (copy-paste ready)
 
-| Branch                   | Purpose                         |
-| ------------------------ | ------------------------------- |
-| `main`                   | Production (Next.js)            |
-| `dev`                    | Active migration/development    |
-| `archive/vite-prototype` | Read-only Vite prototype        |
-| `ai-collab`              | AI experiments & subagent tasks |
+> All files below are provided as production-ready snippets. Place them under the paths indicated and update environment variables as needed.
 
-**Steps:**
+### 1) MongoDB connector — `src/lib/mongodb-connect.ts`
 
-```bash
-git clone https://github.com/CjDaOne/Serene-Mind-App.git
-cd Serene-Mind-App
-git checkout -b dev
+```ts
+import mongoose from 'mongoose';
+
+const MONGODB_URI = process.env.MONGODB_URI!;
+
+if (!MONGODB_URI) {
+  throw new Error('Please define MONGODB_URI in .env.local');
+}
+
+interface MongooseCache {
+  conn: typeof mongoose | null;
+  promise: Promise<typeof mongoose> | null;
+}
+
+declare global {
+  // eslint-disable-next-line no-var
+  var mongoose: MongooseCache | undefined;
+}
+
+let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+
+if (!global.mongoose) {
+  global.mongoose = cached;
+}
+
+async function dbConnect(): Promise<typeof mongoose> {
+  if (cached.conn) {
+    return cached.conn;
+  }
+
+  if (!cached.promise) {
+    cached.promise = mongoose.connect(MONGODB_URI, {
+      bufferCommands: false,
+      // Recommended options can be added here
+    });
+  }
+
+  try {
+    cached.conn = await cached.promise;
+  } catch (e) {
+    cached.promise = null;
+    throw e;
+  }
+
+  return cached.conn;
+}
+
+export default dbConnect;
 ```
 
-* Create missing branches: `archive/vite-prototype`, `ai-collab`
-* Protect `main` branch, enforce PR-only merges
-* Configure GitHub Actions for linting, typechecking, testing, and Vercel deploys
-
 ---
 
-## 2️⃣ Planning & Documentation
+### 2) Task Model (Mongoose) — `src/lib/models/Task.ts`
 
-* Tools: NotebookLM + ChatGPT Explore
-* Log migration roadmap, component mapping (Vite → Next.js)
-* Track decisions, best practices, challenges
-* Explore spaces per feature/component
+```ts
+import mongoose, { Schema, Document } from 'mongoose';
 
-**Example Explore Tags:** `#MoodTracker #JournalModal #NextJS_Routes #PWA #Tailwind #TaskManager`
+export interface ITask extends Document {
+  userId: string;
+  title: string;
+  description?: string;
+  completed: boolean;
+  priority?: 'low' | 'medium' | 'high';
+  dueDate?: Date;
+  subtasks?: { title: string; completed: boolean }[];
+  createdAt: Date;
+  updatedAt: Date;
+}
 
----
+const TaskSchema = new Schema<ITask>(
+  {
+    userId: { type: String, required: true, index: true },
+    title: { type: String, required: true },
+    description: { type: String },
+    completed: { type: Boolean, default: false },
+    priority: { type: String, enum: ['low', 'medium', 'high'], default: 'low' },
+    dueDate: { type: Date },
+    subtasks: [
+      {
+        title: String,
+        completed: { type: Boolean, default: false },
+      },
+    ],
+  },
+  { timestamps: true }
+);
 
-## 3️⃣ Prototype Assessment
-
-* Review `archive/vite-prototype` for core components, dependencies, Vite-specific code
-* Document priority components for migration
-
----
-
-## 4️⃣ Next.js Project Initialization
-
-```bash
-npx create-next-app@latest nextn --typescript
-cd nextn
-npm install
-npx tailwindcss init -p
-npx shadcn-ui init
-npm install next-pwa lucide-react next-auth mongoose dotenv
+export default mongoose.models.Task || mongoose.model<ITask>('Task', TaskSchema);
 ```
 
-* Set up App Router (`app/`) and pages
-* Integrate Firebase or backend services if needed
-
 ---
 
-## 5️⃣ Component Migration & Refactoring
+### 3) API route — `src/app/api/tasks/route.ts` (GET, POST)
 
-* Copy components to `components/`
-* Refactor with Claude for semantic structure, hook adjustments, PWA readiness
-* Use VS Code + Copilot for micro-level adjustments
-* Log changes in NotebookLM and Explore
+```ts
+import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import dbConnect from '@/lib/mongodb-connect';
+import Task from '@/lib/models/Task';
 
----
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-## 6️⃣ Page Routing & Integration
+    await dbConnect();
+    const tasks = await Task.find({ userId: session.user.id }).sort({ createdAt: -1 });
 
-* Map components to routes (`/dashboard`, `/calendar`, `/journal`)
-* Configure dynamic routing for tasks
-* Set up global layout & nested layouts
-* Validate routing with ChatGPT and Amp Subagents
+    return NextResponse.json({ tasks });
+  } catch (error) {
+    console.error('GET /api/tasks error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
 
----
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
-## 7️⃣ State Management & Forms
+    const body = await request.json();
+    // TODO: Validate `body` with Zod schema before creating
 
-* Convert state to React Context or Zustand
-* Use React Hook Form for forms
-* Refactor forms to Next.js pages
-* Test hooks & state transitions via Copilot and Claude
+    await dbConnect();
+    const task = new Task({ userId: session.user.id, ...body });
+    await task.save();
 
----
-
-## 8️⃣ Testing & QA
-
-**Tools:** Jest + React Testing Library, NotebookLM + Explore
-
-**Setup:**
-
-```bash
-npm install --save-dev jest @testing-library/react @testing-library/jest-dom @testing-library/user-event ts-jest
-```
-
-**Jest Config:** `jest.config.js` and `jest.setup.ts` as per v1.1
-
-* Write unit tests for migrated components
-* Track coverage in NotebookLM
-* Log failures in Explore
-* Iteratively fix issues with AI assistance
-
----
-
-## 9️⃣ CI/CD & Vercel Deployment
-
-**Scripts:**
-
-```json
-"scripts": {
-  "dev": "next dev --turbopack -p 9002",
-  "genkit:dev": "genkit start -- tsx src/ai/dev.ts",
-  "genkit:watch": "genkit start -- tsx --watch src/ai/dev.ts",
-  "build": "next build",
-  "start": "next start",
-  "lint": "next lint",
-  "typecheck": "tsc --noEmit",
-  "lint:check": "npm run lint && npm run typecheck",
-  "build:prod": "npm run lint:check && npm run build",
-  "test": "jest"
+    return NextResponse.json({ task }, { status: 201 });
+  } catch (error) {
+    console.error('POST /api/tasks error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
 }
 ```
 
-* CI/CD: `lint:check` → `jest` → `build:prod` → Vercel deployment
-
 ---
 
-## 10️⃣ next.config.ts (Production & PWA Ready)
+### 4) API route — `src/app/api/tasks/[id]/route.ts` (GET, PUT, DELETE)
 
 ```ts
-import type { NextConfig } from 'next';
-import withPWA from 'next-pwa';
+import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongodb-connect';
+import Task from '@/lib/models/Task';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
-const nextConfig: NextConfig = withPWA({
-  reactStrictMode: true,
-  typescript: { ignoreBuildErrors: false },
-  eslint: { ignoreDuringBuilds: false },
-  images: {
-    remotePatterns: [
-      { protocol: 'https', hostname: 'placehold.co', port: '', pathname: '/**' },
-    ],
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await dbConnect();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    return NextResponse.json({ task });
+  } catch (error) {
+    console.error('GET /api/tasks/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const body = await request.json();
+    // TODO: Validate body
+    await dbConnect();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    Object.assign(task, body);
+    await task.save();
+    return NextResponse.json({ task });
+  } catch (error) {
+    console.error('PUT /api/tasks/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await dbConnect();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    await task.deleteOne();
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('DELETE /api/tasks/[id] error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+```
+
+---
+
+### 5) Toggle route — `src/app/api/tasks/[id]/toggle/route.ts` (PATCH)
+
+```ts
+import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongodb-connect';
+import Task from '@/lib/models/Task';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    await dbConnect();
+    const task = await Task.findById(params.id);
+    if (!task) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    if (task.userId !== session.user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+    task.completed = !task.completed;
+    await task.save();
+    return NextResponse.json({ task });
+  } catch (error) {
+    console.error('PATCH /api/tasks/[id]/toggle error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+```
+
+---
+
+### 6) React Query hooks — `src/lib/queries/tasks.ts`
+
+```ts
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { ITask } from '@/lib/models/Task';
+
+export function useTasks() {
+  return useQuery({
+    queryKey: ['tasks'],
+    queryFn: async () => {
+      const res = await fetch('/api/tasks');
+      if (!res.ok) throw new Error('Failed to fetch tasks');
+      const data = await res.json();
+      return data.tasks as ITask[];
+    },
+  });
+}
+
+export function useAddTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (task: Partial<ITask>) => {
+      const res = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(task),
+      });
+      if (!res.ok) throw new Error('Failed to add task');
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+}
+
+export function useToggleTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (taskId: string) => {
+      const res = await fetch(`/api/tasks/${taskId}/toggle`, { method: 'PATCH' });
+      if (!res.ok) throw new Error('Failed to toggle task');
+      return res.json();
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['tasks'] }),
+  });
+}
+```
+
+---
+
+### 7) Root Layout — `src/app/layout.tsx` (React Query provider)
+
+```tsx
+import React from 'react';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import Providers from '@/components/providers';
+import './globals.css';
+
+const queryClient = new QueryClient();
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <QueryClientProvider client={queryClient}>
+          <Providers>{children}</Providers>
+        </QueryClientProvider>
+      </body>
+    </html>
+  );
+}
+```
+
+---
+
+### 8) Re-enable NextAuth & MongoDB Adapter snippet — `src/app/api/auth/[...nextauth]/route.ts`
+
+```ts
+import NextAuth from 'next-auth';
+import GoogleProvider from 'next-auth/providers/google';
+import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
+import clientPromise from '@/lib/mongodb-client'; // if you use a separate client promise
+
+export const authOptions = {
+  providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+  ],
+  adapter: MongoDBAdapter(clientPromise),
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: 'jwt',
   },
-  pwa: {
-    dest: 'public',
-    disable: process.env.NODE_ENV === 'development',
-  },
+};
+
+export default NextAuth(authOptions);
+```
+
+**Note:** Replace `clientPromise` with your existing client or use `dbConnect` wrapper to create.
+
+---
+
+### 9) Protected Page Example (`src/app/dashboard/page.tsx`)
+
+```tsx
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
+import AppShell from '@/components/app-shell';
+import DashboardClient from '@/components/dashboard/dashboard-client';
+
+export default function DashboardPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (status === 'loading') return;
+    if (!session) router.push('/');
+  }, [session, status, router]);
+
+  if (status === 'loading') return <div>Loading...</div>;
+  if (!session) return null;
+
+  return (
+    <AppShell>
+      <DashboardClient />
+    </AppShell>
+  );
+}
+```
+
+---
+
+### 10) Replace Zustand mock store usage — Example migration
+
+**Before (mocked Zustand store):**
+
+```ts
+// src/lib/store.ts
+export const useTaskStore = create<TaskStore>((set) => ({
+  tasks: MOCK_TASKS,
+  addTask: (task) => set((s) => ({ tasks: [...s.tasks, task] })),
+}));
+```
+
+**After (keep Zustand for UI state only):**
+
+* Move data fetching to React Query hooks (see `src/lib/queries/tasks.ts`)
+* Keep Zustand for ephemeral UI state like `isSidebarOpen` or `modalOpen`
+
+```ts
+// src/lib/ui-store.ts
+import create from 'zustand';
+
+export const useUIStore = create((set) => ({
+  isSidebarOpen: true,
+  toggleSidebar: () => set((s) => ({ isSidebarOpen: !s.isSidebarOpen })),
+}));
+```
+
+---
+
+### 11) Task Manager client example — using React Query
+
+```tsx
+import { useForm } from 'react-hook-form';
+import { useAddTask } from '@/lib/queries/tasks';
+import { toast } from '@/components/ui/toast';
+
+export default function TaskManagerClient() {
+  const { register, handleSubmit, reset } = useForm();
+  const addTask = useAddTask();
+
+  const onSubmit = async (data: any) => {
+    try {
+      await addTask.mutateAsync({
+        title: data.title,
+        completed: false,
+        dueDate: data.dueDate || null,
+        priority: data.priority || 'low',
+      });
+      reset();
+      toast({ title: 'Task added!' });
+    } catch (err) {
+      toast({ title: 'Could not add task', variant: 'destructive' });
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <input {...register('title', { required: true })} placeholder="Task title" />
+      <button type="submit">Add</button>
+    </form>
+  );
+}
+```
+
+---
+
+### 12) .env.local example
+
+```env
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/serene-mind?retryWrites=true&w=majority
+NEXTAUTH_SECRET=your-super-secret-key
+NEXTAUTH_URL=http://localhost:3000
+GOOGLE_CLIENT_ID=your-google-oauth-client-id
+GOOGLE_CLIENT_SECRET=your-google-oauth-client-secret
+GOOGLE_API_KEY=your-gemini-api-key
+NODE_ENV=development
+```
+
+---
+
+### 13) Jest API test skeleton — `src/__tests__/api/tasks.test.ts`
+
+```ts
+import { createMocks } from 'node-mocks-http';
+import { GET, POST } from '@/app/api/tasks/route';
+
+describe('API: /api/tasks', () => {
+  it('GET should return 401 without session', async () => {
+    const { req, res } = createMocks({ method: 'GET' });
+    const response = await GET(req as any);
+    // Expect unauthorized json
+    expect(response.status).toBe(401);
+  });
+
+  // Add tests for POST (mock db and session)
 });
-
-export default nextConfig;
 ```
 
 ---
 
-## 11️⃣ Cross-Platform Mobile Sync
+## Architecture & Security Additions (explicit)
 
-* Mobile testing via Amp Subagents or React Native shell
-* Ensure PWA behavior
-* Sync component updates and logs back to NotebookLM
+* **Validation:** Use Zod schemas in API routes (parse input before DB writes)
+* **Rate limiting:** Add `next-rate-limit` for AI endpoints
+* **CSRF:** Ensure NextAuth handles CSRF for auth flows; for other routes, consider same-origin and token checks
+* **Security headers:** Add `headers` in Next.js config for CSP, X-Frame-Options, HSTS
 
----
+Example security headers in `next.config.ts`:
 
-## 12️⃣ AI Tool Roles
+```ts
+const securityHeaders = [
+  { key: 'Content-Security-Policy', value: "default-src 'self'; img-src 'self' data: https:;" },
+  { key: 'X-Frame-Options', value: 'DENY' },
+  { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+];
 
-* Regular ChatGPT: real-time coding, debugging, optimization
-* ChatGPT Explore: persistent memory, logging
-* Claude: refactoring, semantic checks
-* VS Code + Copilot: micro edits
-* Amp Code + Subagents: builds, tests, CI/CD, cross-platform sync
-* GitHub: version control, PRs
-* NotebookLM: centralized knowledge hub
-
----
-
-## 13️⃣ Weekly Workflow
-
-* Mon: Plan migration & log roadmap
-* Tue: Migrate core components
-* Wed: Refactor & optimize components
-* Thu: Page routing & integration
-* Fri: Testing & CI/CD validation
-* Sat: Mobile sync & PWA QA
-* Sun: Document & review progress
-
----
-
-## 14️⃣ Logging & Documentation
-
-* Log all design decisions, migration progress, and AI tasks in NotebookLM
-* Standardized commit messages:
-
-```
-[MIGRATION] <Component/Feature> — See NotebookLM/Explore tag
+module.exports = {
+  async headers() {
+    return [
+      {
+        source: '/(.*)',
+        headers: securityHeaders,
+      },
+    ];
+  },
+};
 ```
 
-* Maintain read-only `archive/vite-prototype` for reference
+---
+
+## Prioritized Action Plan (updated)
+
+**Phase 1 — BLOCKING (Days 1-3)**
+
+1. Add `src/lib/mongodb-connect.ts` and `src/lib/models/*` (tasks, journal, mood)
+2. Enable NextAuth MongoDB adapter and re-enable auth checks across protected pages
+3. Implement core API routes: `/api/tasks`, `/api/tasks/[id]`, `/api/tasks/[id]/toggle`, `/api/journal`, `/api/achievements`
+
+**Phase 2 — Data Layer & Tests (Days 4-10)**
+
+1. Migrate from mock Zustand store to React Query hooks (keep Zustand for UI only)
+2. Add API route tests + integration tests
+3. Update existing components to use React Query mutations & queries
+
+**Phase 3 — Polish & Security (Days 11-21)**
+
+1. Add validation, rate limiting, CSP headers
+2. Convert heavy client pages to server components where possible
+3. Add PLAYWRIGHT E2E tests and CI integration
 
 ---
 
-✅ **Outcome (v1.2)**
+## Files added to this playbook (copy-paste ready)
 
-* Vite prototype → Next.js production-ready
-* Components refactored, optimized, PWA-ready
-* AI-assisted workflow fully integrated
-* CI/CD pipeline with linting, typechecking, testing, build, deployment
-* NotebookLM and Explore track code, AI tasks, and test results
-* Unified developer onboarding + operational guide for team and AI agents
+* `src/lib/mongodb-connect.ts` (full)
+* `src/lib/models/Task.ts` (full)
+* `src/app/api/tasks/route.ts` (GET, POST)
+* `src/app/api/tasks/[id]/route.ts` (GET, PUT, DELETE)
+* `src/app/api/tasks/[id]/toggle/route.ts` (PATCH)
+* `src/lib/queries/tasks.ts` (React Query hooks)
+* `src/app/layout.tsx` (QueryClientProvider example)
+* `src/app/api/auth/[...nextauth]/route.ts` (enablement snippet)
+* Protected page example for `/dashboard`
+* TaskManager client example using React Query
+* `.env.local` example
+* Jest test skeleton for API
 
+---
+
+## Next Steps I can do for you now
+
+* Paste additional API routes (journal, moods, achievements)
+* Convert select components to use React Query (I can generate for `task-manager`, `journal-client`, `calendar-client`)
+* Generate Playwright E2E test script skeletons
+* Create GitHub Action CI workflow file that runs lint, typecheck, tests, build
+
+I have embedded all suggested examples and snippets directly into the playbook. Let me know which of the next-step items you want me to generate as actual files next and I will produce copy-paste-ready files immediately.
