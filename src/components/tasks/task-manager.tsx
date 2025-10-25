@@ -32,7 +32,7 @@ const taskSchema = z.object({
 type TaskForm = z.infer<typeof taskSchema>;
 
 export default function TaskManager() {
-  const { tasks, addTask, deleteTask, toggleTask, updateSubtask, addSubtasks } = useTaskStore();
+  const { tasks, addTask, deleteTask, toggleTask, updateSubtask, addSubtasks, fetchTasks } = useTaskStore();
   const [isSuggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -48,6 +48,10 @@ export default function TaskManager() {
   });
 
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchTasks();
+  }, [fetchTasks]);
 
   const onSubmit = (data: TaskForm) => {
     addTask({

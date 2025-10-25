@@ -9,23 +9,15 @@ import { Trophy } from 'lucide-react';
 import { getAchievementIcon } from '@/components/icons';
 
 export default function RewardsClient() {
-  const { tasks } = useTaskStore();
-  const { entries: journalEntries } = useJournalStore();
-  const { achievements, updateAchievements } = useAchievementStore();
+  const { fetchAchievements, achievements, stats } = useAchievementStore();
 
   useEffect(() => {
-    updateAchievements(tasks, journalEntries);
-  }, [tasks, journalEntries, updateAchievements]);
-
-  const wellnessPoints = useMemo(() => {
-    const completedTasks = tasks.filter(t => t.completed).length;
-    const journalCount = journalEntries.length;
-    return (completedTasks * 10) + (journalCount * 5);
-  }, [tasks, journalEntries]);
+    fetchAchievements();
+  }, [fetchAchievements]);
 
   const totalAchievements = achievements.length;
   const unlockedCount = achievements.filter(a => a.unlocked).length;
-  const progressPercentage = (unlockedCount / totalAchievements) * 100;
+  const progressPercentage = totalAchievements > 0 ? (unlockedCount / totalAchievements) * 100 : 0;
 
   return (
     <div className="flex flex-col gap-8">
@@ -40,11 +32,11 @@ export default function RewardsClient() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-between items-center">
-            <h3 className="text-lg font-semibold">Wellness Points</h3>
-            <div className="flex items-center gap-2 text-2xl font-bold text-primary">
-              <Trophy className="w-6 h-6" />
-              <span>{wellnessPoints}</span>
-            </div>
+          <h3 className="text-lg font-semibold">Wellness Points</h3>
+          <div className="flex items-center gap-2 text-2xl font-bold text-primary">
+          <Trophy className="w-6 h-6" />
+          <span>{stats.totalPoints}</span>
+          </div>
           </div>
           <div className="space-y-2">
             <div className="flex justify-between text-sm text-muted-foreground">

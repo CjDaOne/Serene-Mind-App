@@ -24,7 +24,7 @@ const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
 ];
 
 export default function JournalClient() {
-  const { entries: journalEntries, addEntry } = useJournalStore();
+  const { entries: journalEntries, addEntry, fetchEntries } = useJournalStore();
   const [newEntryContent, setNewEntryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood>('Happy');
   const [insights, setInsights] = useState('');
@@ -32,6 +32,10 @@ export default function JournalClient() {
   const [isInsightsSheetOpen, setInsightsSheetOpen] = useState(false);
   const [isAddEntryDialogOpen, setAddEntryDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  useEffect(() => {
+    fetchEntries();
+  }, [fetchEntries]);
 
   const handleAddEntry = () => {
     if (newEntryContent.trim()) {

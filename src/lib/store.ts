@@ -115,35 +115,89 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
 
 interface JournalStore {
   entries: JournalEntry[];
-  addEntry: (entry: Omit<JournalEntry, 'id'>) => void;
+  loading: boolean;
+  error: string | null;
+  fetchEntries: () => Promise<void>;
+  addEntry: (entry: Omit<JournalEntry, 'id'>) => Promise<void>;
 }
 
-export const useJournalStore = create<JournalStore>((set) => ({
-  entries: MOCK_JOURNAL_ENTRIES,
-  addEntry: (entry) =>
-    set((state) => ({
-      entries: [{ ...entry, id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}` }, ...state.entries],
-    })),
+export const useJournalStore = create<JournalStore>((set, get) => ({
+  entries: [],
+  loading: false,
+  error: null,
+
+  fetchEntries: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch('/api/journal');
+      if (!response.ok) {
+        throw new Error('Failed to fetch journal entries');
+      }
+      const entryDTOs = await response.json();
+      const entries = entryDTOs.map(fromJournalEntryDTO);
+      set({ entries, loading: false });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Unknown error', loading: false });
+    }
+  },
+
+  addEntry: async (entry) => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch('/api/journal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(entry),
+      });
+      if (!response.ok) {
+        throw new Error('Failed to add journal entry');
+      }
+      await get().fetchEntries(); // Refresh entries
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Unknown error', loading: false });
+    }
+  },
 }));
 
 interface AchievementStore {
   achievements: Achievement[];
-  updateAchievements: (tasks: Task[], entries: JournalEntry[]) => void;
+  stats: {
+    tasksCompleted: number;
+    journalEntries: number;
+    totalPoints: number;
+    streakDays: number;
+  };
+  loading: boolean;
+  error: string | null;
+  fetchAchievements: () => Promise<void>;
 }
 
-export const useAchievementStore = create<AchievementStore>((set, get) => ({
-  achievements: MOCK_ACHIEVEMENTS,
-  updateAchievements: (tasks, entries) => {
-    const completedTasks = tasks.filter((t) => t.completed).length;
-    const journalCount = entries.length;
-    set((state) => ({
-      achievements: state.achievements.map((ach) => {
-        if (ach.id === '1' && completedTasks > 0) return { ...ach, unlocked: true };
-        if (ach.id === '2' && journalCount > 0) return { ...ach, unlocked: true };
-        if (ach.id === '3' && completedTasks >= 5) return { ...ach, unlocked: true };
-        if (ach.id === '4' && journalCount >= 3) return { ...ach, unlocked: true };
-        return ach;
-      }),
-    }));
+export const useAchievementStore = create<AchievementStore>((set) => ({
+  achievements: [],
+  stats: {
+    tasksCompleted: 0,
+    journalEntries: 0,
+    totalPoints: 0,
+    streakDays: 0,
+  },
+  loading: false,
+  error: null,
+
+  fetchAchievements: async () => {
+    set({ loading: true, error: null });
+    try {
+      const response = await fetch('/api/rewards');
+      if (!response.ok) {
+        throw new Error('Failed to fetch achievements');
+      }
+      const data = await response.json();
+      set({
+        achievements: data.achievements,
+        stats: data.stats,
+        loading: false
+      });
+    } catch (error) {
+      set({ error: error instanceof Error ? error.message : 'Unknown error', loading: false });
+    }
   },
 }));

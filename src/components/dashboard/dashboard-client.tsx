@@ -18,13 +18,16 @@ const moodVerbiage: Record<Mood, string> = {
 
 
 export default function DashboardClient() {
-  const { tasks } = useTaskStore();
-  const { entries: journalEntries } = useJournalStore();
-  const { achievements, updateAchievements } = useAchievementStore();
+  const { tasks, fetchTasks } = useTaskStore();
+  const { entries: journalEntries, fetchEntries } = useJournalStore();
+  const { achievements, fetchAchievements } = useAchievementStore();
 
   useEffect(() => {
-    updateAchievements(tasks, journalEntries);
-  }, [tasks, journalEntries, updateAchievements]);
+    // Fetch data on component mount
+    fetchTasks();
+    fetchEntries();
+    fetchAchievements();
+  }, [fetchTasks, fetchEntries, fetchAchievements]);
 
   const todaysTasks = tasks.filter(task => {
     const today = new Date();
