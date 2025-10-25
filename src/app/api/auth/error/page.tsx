@@ -5,7 +5,7 @@ import { authOptions } from '../[...nextauth]/route';
 export default async function AuthErrorPage({
   searchParams,
 }: {
-  searchParams: { error?: string };
+  searchParams: Promise<{ error?: string }>;
 }) {
   const session = await getServerSession(authOptions);
 
@@ -13,7 +13,8 @@ export default async function AuthErrorPage({
     redirect('/');
   }
 
-  const error = searchParams.error;
+  const params = await searchParams;
+  const error = params.error;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
