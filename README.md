@@ -39,54 +39,10 @@ Serene Mind is a personal wellness suite designed to support users managing depr
 | Auth       | NextAuth.js                             |
 | AI Layer   | Google Genkit + Gemini API              |
 | Database   | MongoDB (planned)                       |
-| State      | Zustand                                 |
+| State      | Zustand + React Query                   |
+| Testing    | Jest + Testing Library                  |
+| Automation | Custom Agent System                     |
 | Deployment | Vercel                                  |
-| Dev Tools  | Git, GitHub, VS Code                    |
-
----
-
-## 🧱 Local Development Setup
-
-```bash
-# Clone repository
-git clone https://github.com/CjDaOne/Serene-Mind-App.git
-cd Serene-Mind-App
-
-# Switch to development branch
-git checkout dev
-
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-```
-
-App will be available at: [http://localhost:3000](http://localhost:3000)
-
----
-
-## 🚀 AI Development
-
-```bash
-# Run AI flows locally
-npm run genkit:dev
-```
-
----
-
-
-
----
-
-## 🧑‍💻 Developer Guide
-
-| Action                   | Command         |
-| ------------------------ | --------------- |
-| Install dependencies     | `npm install`   |
-| Start development server | `npm run dev`   |
-| Build for production     | `npm run build` |
-| Lint code                | `npm run lint`  |
 
 ---
 
