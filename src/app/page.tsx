@@ -52,7 +52,7 @@ export default function LandingPage() {
               {session ? (
                 <Link href="/dashboard">Go to Dashboard</Link>
               ) : (
-                <Link href="/dashboard">Get Started for Free (Dev Mode)</Link>
+                'Get Started for Free'
               )}
             </Button>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
@@ -190,7 +190,7 @@ export default function LandingPage() {
               {session ? (
               <Link href="/dashboard">Start Now!</Link>
               ) : (
-              <Link href="/dashboard">Start Now! (Dev Mode)</Link>
+              'Start Now!'
               )}
             </Button>
           </div>

@@ -7,22 +7,21 @@ import AppShell from '@/components/app-shell';
 import DashboardClient from '@/components/dashboard/dashboard-client';
 
 export default function DashboardPage() {
-  // TEMPORARY: Bypass auth for development
-  // const { data: session, status } = useSession();
-  // const router = useRouter();
+  const { data: session, status } = useSession();
+  const router = useRouter();
 
-  // useEffect(() => {
-  //   if (status === 'loading') return; // Still loading
-  //   if (!session) router.push('/'); // Redirect to home if not authenticated
-  // }, [session, status, router]);
+  useEffect(() => {
+    if (status === 'loading') return; // Still loading
+    if (!session) router.push('/'); // Redirect to home if not authenticated
+  }, [session, status, router]);
 
-  // if (status === 'loading') {
-  //   return <div>Loading...</div>;
-  // }
+  if (status === 'loading') {
+    return <div>Loading...</div>;
+  }
 
-  // if (!session) {
-  //   return null; // Will redirect
-  // }
+  if (!session) {
+    return null; // Will redirect
+  }
 
   return (
     <AppShell>
