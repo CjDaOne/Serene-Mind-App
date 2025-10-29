@@ -1,6 +1,7 @@
 import type { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import EmailProvider from 'next-auth/providers/email';
+import CredentialsProvider from 'next-auth/providers/credentials';
 import { MongoDBAdapter } from '@next-auth/mongodb-adapter';
 import clientPromise from '@/lib/mongodb';
 import type { Session } from 'next-auth';
@@ -42,6 +43,19 @@ export const authOptions: AuthOptions = {
     EmailProvider({
       server: process.env.EMAIL_SERVER,
       from: process.env.EMAIL_FROM,
+    }),
+    CredentialsProvider({
+      id: 'guest',
+      name: 'Guest',
+      credentials: {},
+      async authorize() {
+        return {
+          id: `guest-${crypto.randomUUID()}`,
+          name: 'Guest User',
+          email: 'guest@example.com',
+          isGuest: true,
+        };
+      },
     }),
   ],
   callbacks: {

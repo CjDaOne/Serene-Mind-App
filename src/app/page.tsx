@@ -5,7 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut, signIn } from 'next-auth/react';
 import { useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
@@ -19,15 +19,15 @@ export default function LandingPage() {
   const handleTryDemo = async () => {
     setIsCreatingGuest(true);
     try {
-      const response = await fetch('/api/auth/guest', {
-        method: 'POST',
+      const result = await signIn('guest', { 
+        callbackUrl: '/dashboard',
+        redirect: false 
       });
       
-      if (!response.ok) {
-        throw new Error('Failed to create guest session');
+      if (result?.error) {
+        throw new Error(result.error);
       }
       
-      const data = await response.json();
       toast({
         title: 'Welcome!',
         description: 'You\'re now in demo mode. Explore all features!',
