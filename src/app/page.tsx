@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { useSession, signOut } from 'next-auth/react';
@@ -58,7 +59,7 @@ export default function LandingPage() {
               )}
             </Button>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
-               <img src="https://placehold.co/800x400.png" alt="A serene, abstract image representing calm focus" className="rounded-lg object-cover w-full h-full" data-ai-hint="calm abstract" />
+               <Image src="https://placehold.co/800x400.png" alt="A serene, abstract image representing calm focus" className="rounded-lg object-cover w-full h-full" width={800} height={400} priority />
             </div>
           </div>
         </section>

@@ -73,9 +73,9 @@ Serene Mind is a **Progressive Web App (PWA)** designed to support users managin
 | Auth         | NextAuth.js (OAuth + Email)             |
 | AI Layer     | Google Genkit + Gemini API              |
 | Database     | MongoDB with user data isolation        |
-| State Mgmt   | Zustand + React Query                   |
+| State Mgmt   | Native React (useState)                 |
 | PWA          | Service Worker + Web Push API           |
-| Testing      | Jest + Testing Library                  |
+| Testing      | Jest + Testing Library + Playwright     |
 | Deployment   | Vercel                                  |
 
 ---
@@ -214,9 +214,30 @@ Enable notifications to receive:
 - **Achievement alerts:** Celebrate your progress
 
 **Setup:**
-1. Click "Enable Notifications" in settings
-2. Allow notifications when prompted by browser
-3. Notifications work even when app is closed
+1. Go to the Dashboard page
+2. Scroll to the "Push Notifications" section at the bottom
+3. Click "Enable Notifications"
+4. Allow notifications when prompted by browser
+5. Notifications work even when app is closed
+
+### PWA Component Integration
+
+The app includes two key PWA components automatically integrated:
+
+1. **InstallPrompt** (Bottom-right corner)
+   - Appears 3 seconds after page load
+   - Smart detection for iOS and Android devices
+   - Shows install instructions for iOS Safari users
+   - One-click install for Chrome/Edge/Android users
+   - Dismissable and remembers user preference
+
+2. **NotificationManager** (Dashboard page)
+   - Enable/disable push notifications
+   - Send test notifications
+   - Manages browser notification permissions
+   - Handles subscription to push service
+
+Both components are client-side only and require no configuration to work.
 
 ---
 
@@ -240,8 +261,14 @@ npm run typecheck
 # Linting
 npm run lint
 
-# Run tests
+# Run unit tests
 npm test
+
+# Run E2E tests
+npm run test:e2e        # Run all E2E tests
+npm run test:e2e:ui     # Interactive UI mode
+npm run test:e2e:headed # See browser while testing
+npm run test:e2e:debug  # Debug mode
 
 # AI development (Google Genkit)
 npm run genkit:dev      # Start Genkit developer UI
@@ -334,10 +361,10 @@ The app can be deployed to any platform that supports Next.js:
 
 ## 🧪 Testing
 
-### Run Tests
+### Unit Tests (Jest + React Testing Library)
 
 ```bash
-# Run all tests
+# Run all unit tests
 npm test
 
 # Run tests in watch mode
@@ -347,16 +374,50 @@ npm test -- --watch
 npm test -- --coverage
 ```
 
+### E2E Tests (Playwright)
+
+First, install Playwright browsers:
+
+```bash
+npx playwright install
+```
+
+Then run E2E tests:
+
+```bash
+# Run all E2E tests
+npm run test:e2e
+
+# Run with interactive UI
+npm run test:e2e:ui
+
+# Run in headed mode (see browser)
+npm run test:e2e:headed
+
+# Debug tests
+npm run test:e2e:debug
+
+# Run specific test file
+npx playwright test tests/e2e/auth.spec.ts
+
+# Run in specific browser
+npx playwright test --project=chromium
+```
+
 ### Test Coverage
 
-The app includes tests for:
-
+#### Unit Tests
 - ✅ Component rendering
 - ✅ User interactions
-- ✅ API routes
-- ✅ Authentication flows
-- ✅ Database operations
-- ✅ AI integration
+- ✅ Utility functions
+
+#### E2E Tests
+- ✅ Authentication flows (sign in, redirects, protected routes)
+- ✅ PWA features (manifest, service worker, offline mode)
+- ⏳ Task management (CRUD operations - needs auth setup)
+- ⏳ Journal entries (create, view, edit - needs auth setup)
+
+**See [tests/README.md](tests/README.md) for comprehensive testing documentation.**
 
 ---
 

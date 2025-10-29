@@ -1,8 +1,11 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
 import { AchievementSchema, Achievement } from '@/lib/domain/achievement';
+import { withRateLimit } from '@/middleware/rate-limit-middleware';
+import { rateLimitConfig } from '@/lib/rate-limit';
+import { withApiHandler, successResponse } from '@/lib/api-handler';
 
 const ACHIEVEMENTS: Achievement[] = [
   {
@@ -49,80 +52,71 @@ const ACHIEVEMENTS: Achievement[] = [
   },
 ];
 
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
+export async function GET(request: NextRequest) {
+  return withRateLimit(request, async () => {
+    return withApiHandler(async (req) => {
+      const session = await getServerSession(authOptions);
+      const client = await clientPromise;
+      const db = client.db('serene-mind');
 
-    const client = await clientPromise;
-    const db = client.db('serene-mind');
+      const tasksCount = await db.collection('tasks').countDocuments({
+        userId: session!.user!.id,
+        completed: true,
+      });
 
-    // Get user stats
-    const tasksCount = await db.collection('tasks').countDocuments({
-      userId: session.user.id,
-      completed: true,
-    });
+      const journalCount = await db.collection('journal').countDocuments({
+        userId: session!.user!.id,
+      });
 
-    const journalCount = await db.collection('journal').countDocuments({
-      userId: session.user.id,
-    });
+      const completedTasks = await db.collection('tasks')
+        .find({ userId: session!.user!.id, completed: true })
+        .sort({ updatedAt: -1 })
+        .toArray();
 
-    const completedTasks = await db.collection('tasks')
-      .find({ userId: session.user.id, completed: true })
-      .sort({ updatedAt: -1 })
-      .toArray();
+      const uniqueDates = [...new Set(
+        completedTasks.map(task =>
+          new Date(task.updatedAt).toDateString()
+        )
+      )];
 
-    // Check for streaks (simplified - would need more complex logic for real streaks)
-    const uniqueDates = [...new Set(
-      completedTasks.map(task =>
-        new Date(task.updatedAt).toDateString()
-      )
-    )];
+      const updatedAchievements = ACHIEVEMENTS.map(achievement => {
+        let unlocked = false;
 
-    // Update achievements based on stats
-    const updatedAchievements = ACHIEVEMENTS.map(achievement => {
-      let unlocked = false;
+        switch (achievement.id) {
+          case '1':
+            unlocked = tasksCount >= 1;
+            break;
+          case '2':
+            unlocked = journalCount >= 1;
+            break;
+          case '3':
+            unlocked = tasksCount >= 5;
+            break;
+          case '4':
+            unlocked = journalCount >= 3;
+            break;
+          case '5':
+            unlocked = uniqueDates.length >= 7;
+            break;
+          case '6':
+            unlocked = journalCount >= 10;
+            break;
+        }
 
-      switch (achievement.id) {
-        case '1':
-          unlocked = tasksCount >= 1;
-          break;
-        case '2':
-          unlocked = journalCount >= 1;
-          break;
-        case '3':
-          unlocked = tasksCount >= 5;
-          break;
-        case '4':
-          unlocked = journalCount >= 3;
-          break;
-        case '5':
-          unlocked = uniqueDates.length >= 7;
-          break;
-        case '6':
-          // This would need to check distinct moods, simplified for now
-          unlocked = journalCount >= 10;
-          break;
-      }
+        return { ...achievement, unlocked };
+      });
 
-      return { ...achievement, unlocked };
-    });
+      const totalPoints = (tasksCount * 10) + (journalCount * 5);
 
-    const totalPoints = (tasksCount * 10) + (journalCount * 5);
-
-    return NextResponse.json({
-      achievements: updatedAchievements,
-      stats: {
-        tasksCompleted: tasksCount,
-        journalEntries: journalCount,
-        totalPoints,
-        streakDays: uniqueDates.length,
-      },
-    });
-  } catch (error) {
-    console.error('Error fetching rewards:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+      return successResponse({
+        achievements: updatedAchievements,
+        stats: {
+          tasksCompleted: tasksCount,
+          journalEntries: journalCount,
+          totalPoints,
+          streakDays: uniqueDates.length,
+        },
+      });
+    })(request);
+  }, rateLimitConfig.rewards);
 }

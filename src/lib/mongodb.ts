@@ -7,11 +7,15 @@ if (!process.env.MONGODB_URI) {
 const uri = process.env.MONGODB_URI;
 export const dbName = process.env.MONGODB_DB || 'serene-mind';
 
+// Optimized for Vercel serverless functions
+// Each function instance maintains its own connection
+// Low pool sizes prevent connection exhaustion in MongoDB Atlas
 const options: MongoClientOptions = {
-  maxPoolSize: 10,
-  minPoolSize: 2,
-  maxIdleTimeMS: 60000,
-  serverSelectionTimeoutMS: 10000,
+  maxPoolSize: 1,        // Serverless: 1 connection per function instance
+  minPoolSize: 0,        // Serverless: no minimum to reduce idle connections
+  maxIdleTimeMS: 10000,  // Close idle connections after 10s
+  serverSelectionTimeoutMS: 5000,  // Faster timeout for serverless cold starts
+  connectTimeoutMS: 10000,         // Connection timeout
   socketTimeoutMS: 45000,
 };
 

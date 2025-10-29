@@ -27,11 +27,15 @@ export async function GET() {
   try {
     // Return a random affirmation
     const randomIndex = Math.floor(Math.random() * affirmations.length);
-    return NextResponse.json({
+    const response = NextResponse.json({
       affirmation: affirmations[randomIndex],
       index: randomIndex,
       total: affirmations.length,
     });
+    
+    response.headers.set('Cache-Control', 'public, s-maxage=3600, stale-while-revalidate=86400');
+    
+    return response;
   } catch (error) {
     console.error('Error fetching affirmation:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });

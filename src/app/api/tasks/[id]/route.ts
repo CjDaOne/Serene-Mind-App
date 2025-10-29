@@ -3,24 +3,21 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
 import { ObjectId } from 'mongodb';
+import { withApiHandler, successResponse, errorResponse } from '@/lib/api-handler';
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
+  return withApiHandler(async (req) => {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
-    const body = await request.json();
+    const body = await req.json();
     const client = await clientPromise;
     const db = client.db('serene-mind');
 
     const result = await db.collection('tasks').updateOne(
-      { _id: new ObjectId(id), userId: session.user.id },
+      { _id: new ObjectId(id), userId: session!.user!.id },
       {
         $set: {
           ...body,
@@ -30,42 +27,32 @@ export async function PUT(
     );
 
     if (result.matchedCount === 0) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      return errorResponse('NOT_FOUND', 'Task not found', 404);
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error updating task:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+    return successResponse({ success: true });
+  })(request);
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  try {
+  return withApiHandler(async (req) => {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = await params;
     const client = await clientPromise;
     const db = client.db('serene-mind');
 
     const result = await db.collection('tasks').deleteOne({
       _id: new ObjectId(id),
-      userId: session.user.id,
+      userId: session!.user!.id,
     });
 
     if (result.deletedCount === 0) {
-      return NextResponse.json({ error: 'Task not found' }, { status: 404 });
+      return errorResponse('NOT_FOUND', 'Task not found', 404);
     }
 
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Error deleting task:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
-  }
+    return successResponse({ success: true });
+  })(request);
 }

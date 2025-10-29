@@ -3,6 +3,7 @@ import { Inter, Space_Grotesk } from 'next/font/google';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 import { Providers } from '@/components/providers';
+import { InstallPrompt } from '@/components/install-prompt';
 
 const inter = Inter({ 
   subsets: ['latin'], 
@@ -32,6 +33,7 @@ export default function RootLayout({
       <Providers>
         {children}
           <Toaster />
+          <InstallPrompt />
         </Providers>
       </body>
     </html>

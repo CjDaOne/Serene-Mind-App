@@ -1,8 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useJournalStore } from '@/lib/store';
 import type { JournalEntry, Mood } from '@/lib/types';
+import { fromJournalEntryDTO } from '@/lib/domain/journal';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -24,7 +24,8 @@ const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
 ];
 
 export default function JournalClient() {
-  const { entries: journalEntries, addEntry, fetchEntries } = useJournalStore();
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [loading, setLoading] = useState(false);
   const [newEntryContent, setNewEntryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<Mood>('Happy');
   const [insights, setInsights] = useState('');
@@ -33,21 +34,45 @@ export default function JournalClient() {
   const [isAddEntryDialogOpen, setAddEntryDialogOpen] = useState(false);
   const { toast } = useToast();
 
+  const fetchEntries = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/journal');
+      if (!response.ok) throw new Error('Failed to fetch entries');
+      const entryDTOs = await response.json();
+      setJournalEntries(entryDTOs.map(fromJournalEntryDTO));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load journal entries', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchEntries();
-  }, [fetchEntries]);
+  }, []);
 
-  const handleAddEntry = () => {
+  const handleAddEntry = async () => {
     if (newEntryContent.trim()) {
-      addEntry({
-        date: new Date(),
-        mood: selectedMood,
-        content: newEntryContent,
-      });
-      setNewEntryContent('');
-      setSelectedMood('Happy');
-      toast({ title: 'Journal entry saved!' });
-      setAddEntryDialogOpen(false);
+      try {
+        const response = await fetch('/api/journal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            date: new Date(),
+            mood: selectedMood,
+            content: newEntryContent,
+          }),
+        });
+        if (!response.ok) throw new Error('Failed to add entry');
+        await fetchEntries();
+        setNewEntryContent('');
+        setSelectedMood('Happy');
+        toast({ title: 'Journal entry saved!' });
+        setAddEntryDialogOpen(false);
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to save entry', variant: 'destructive' });
+      }
     }
   };
 

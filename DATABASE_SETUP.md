@@ -13,12 +13,16 @@ MONGODB_DB=serene-mind
 
 ### Connection Pool Settings
 
-The MongoDB client is optimized for serverless (Vercel) with:
-- **maxPoolSize**: 10 connections
-- **minPoolSize**: 2 connections
-- **maxIdleTimeMS**: 60 seconds
-- **serverSelectionTimeoutMS**: 10 seconds
+The MongoDB client is **optimized for Vercel serverless functions** with aggressive connection pooling:
+
+- **maxPoolSize**: 1 connection (each serverless function instance maintains its own connection)
+- **minPoolSize**: 0 connections (no minimum to reduce idle connections)
+- **maxIdleTimeMS**: 10 seconds (close idle connections quickly)
+- **serverSelectionTimeoutMS**: 5 seconds (faster timeout for cold starts)
+- **connectTimeoutMS**: 10 seconds (connection timeout)
 - **socketTimeoutMS**: 45 seconds
+
+**Why these settings?** In Vercel's serverless environment, each function instance manages its own connection pool. Setting `maxPoolSize` too high (e.g., 10) across many concurrent function instances can exhaust MongoDB Atlas connection limits. With `maxPoolSize: 1`, we ensure optimal resource usage while preventing connection pool exhaustion.
 
 ### Database Indexes
 
@@ -59,6 +63,15 @@ curl http://localhost:3001/api/db-init
 MONGODB_URI=mongodb+srv://...
 MONGODB_DB=serene-mind
 ```
+
+#### Production Connection Pooling
+
+In production (Vercel), each serverless function creates its own MongoDB client with:
+- **1 connection max per function instance** - prevents pool exhaustion
+- **0 minimum connections** - reduces idle connections during low traffic
+- **10s idle timeout** - aggressively closes unused connections
+
+This configuration is critical for MongoDB Atlas free tier (M0) which has a 500 connection limit. Without optimization, concurrent serverless functions can quickly exhaust available connections.
 
 ### Monitoring
 

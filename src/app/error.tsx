@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { logger } from '@/lib/logger';
 
 export default function Error({
   error,
@@ -14,7 +15,13 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    console.error('Application error:', error);
+    logger.error('Application error boundary triggered', {
+      message: error.message,
+      digest: error.digest,
+      stack: error.stack,
+      page: window.location.pathname,
+      timestamp: new Date().toISOString(),
+    });
   }, [error]);
 
   return (

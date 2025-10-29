@@ -1,9 +1,14 @@
 import type {NextConfig} from 'next';
 import withSerwistInit from '@serwist/next';
+import withBundleAnalyzer from '@next/bundle-analyzer';
 
 const withSerwist = withSerwistInit({
   swSrc: 'src/app/sw.ts',
   swDest: 'public/sw.js',
+});
+
+const bundleAnalyzer = withBundleAnalyzer({
+  enabled: process.env.ANALYZE === 'true',
 });
 
 const nextConfig: NextConfig = {
@@ -79,4 +84,4 @@ const nextConfig: NextConfig = {
   }
 };
 
-export default withSerwist(nextConfig);
+export default bundleAnalyzer(withSerwist(nextConfig));

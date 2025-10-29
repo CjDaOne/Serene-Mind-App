@@ -1,19 +1,42 @@
 'use client';
 
-import { useMemo, useEffect } from 'react';
-import { useTaskStore, useJournalStore, useAchievementStore } from '@/lib/store';
-import type { Task, JournalEntry, Achievement } from '@/lib/types';
+import { useState, useEffect } from 'react';
+import type { Achievement } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '../ui/progress';
 import { Trophy } from 'lucide-react';
 import { getAchievementIcon } from '@/components/icons';
+import { useToast } from '@/hooks/use-toast';
 
 export default function RewardsClient() {
-  const { fetchAchievements, achievements, stats } = useAchievementStore();
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [stats, setStats] = useState({
+    tasksCompleted: 0,
+    journalEntries: 0,
+    totalPoints: 0,
+    streakDays: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const fetchAchievements = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/rewards');
+      if (!response.ok) throw new Error('Failed to fetch achievements');
+      const data = await response.json();
+      setAchievements(data.achievements);
+      setStats(data.stats);
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load rewards', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchAchievements();
-  }, [fetchAchievements]);
+  }, []);
 
   const totalAchievements = achievements.length;
   const unlockedCount = achievements.filter(a => a.unlocked).length;
