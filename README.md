@@ -214,9 +214,30 @@ Enable notifications to receive:
 - **Achievement alerts:** Celebrate your progress
 
 **Setup:**
-1. Click "Enable Notifications" in settings
-2. Allow notifications when prompted by browser
-3. Notifications work even when app is closed
+1. Go to the Dashboard page
+2. Scroll to the "Push Notifications" section at the bottom
+3. Click "Enable Notifications"
+4. Allow notifications when prompted by browser
+5. Notifications work even when app is closed
+
+### PWA Component Integration
+
+The app includes two key PWA components automatically integrated:
+
+1. **InstallPrompt** (Bottom-right corner)
+   - Appears 3 seconds after page load
+   - Smart detection for iOS and Android devices
+   - Shows install instructions for iOS Safari users
+   - One-click install for Chrome/Edge/Android users
+   - Dismissable and remembers user preference
+
+2. **NotificationManager** (Dashboard page)
+   - Enable/disable push notifications
+   - Send test notifications
+   - Manages browser notification permissions
+   - Handles subscription to push service
+
+Both components are client-side only and require no configuration to work.
 
 ---
 

@@ -1,8 +1,10 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
 import { AchievementSchema, Achievement } from '@/lib/domain/achievement';
+import { withRateLimit } from '@/middleware/rate-limit-middleware';
+import { rateLimitConfig } from '@/lib/rate-limit';
 
 const ACHIEVEMENTS: Achievement[] = [
   {
@@ -49,7 +51,8 @@ const ACHIEVEMENTS: Achievement[] = [
   },
 ];
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  return withRateLimit(request, async () => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -125,4 +128,5 @@ export async function GET() {
     console.error('Error fetching rewards:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  }, rateLimitConfig.rewards);
 }

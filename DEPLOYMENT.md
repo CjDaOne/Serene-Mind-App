@@ -444,6 +444,51 @@ No trailing slash, exact protocol (https).
 6. **Keep dependencies updated:** `npm audit` and `npm update`
 7. **Use environment-specific secrets** in Vercel
 
+### Rate Limiting (Built-in Protection)
+
+The app includes built-in rate limiting to protect API routes from abuse:
+
+**Current Limits:**
+- **Tasks API:** 10 requests per 10 seconds per user/IP
+- **Journal API:** 10 requests per 10 seconds per user/IP
+- **Rewards API:** 5 requests per 10 seconds per user/IP
+
+**How it works:**
+- In-memory rate limiter (resets on deployment)
+- Tracks by authenticated user ID or IP address
+- Returns HTTP 429 when limit exceeded
+- Includes `X-RateLimit-*` headers in responses
+
+**Upgrade Path (Recommended for Production):**
+
+For persistent rate limiting that survives deployments:
+
+1. **Option A: Upstash Redis** (Recommended)
+   ```bash
+   npm install @upstash/ratelimit @upstash/redis
+   ```
+   - Create free account at https://upstash.com
+   - Get Redis URL and token
+   - Add to environment variables
+   - Update `src/lib/rate-limit.ts` to use Upstash
+
+2. **Option B: Vercel KV**
+   ```bash
+   npm install @vercel/kv
+   ```
+   - Enable in Vercel project settings
+   - Automatically configured
+   - Update rate limiter to use KV
+
+**Security Headers:**
+
+The app automatically sets these security headers on all protected routes:
+- `X-Request-ID`: Unique request identifier for tracking
+- `X-Content-Type-Options: nosniff`: Prevents MIME sniffing
+- `X-Frame-Options: DENY`: Prevents clickjacking
+- `X-XSS-Protection: 1; mode=block`: Enables browser XSS protection
+- `Referrer-Policy: strict-origin-when-cross-origin`: Controls referrer information
+
 ---
 
 ## 📊 Monitoring & Maintenance

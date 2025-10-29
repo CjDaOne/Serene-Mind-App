@@ -3,8 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDatabase } from '@/lib/db-init';
 import { CreateTaskSchema, TaskDTO, fromTaskDTO, toTaskDTO } from '@/lib/domain/task';
+import { withRateLimit } from '@/middleware/rate-limit-middleware';
+import { rateLimitConfig } from '@/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  return withRateLimit(request, async () => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -33,16 +36,18 @@ export async function GET() {
     console.error('Error fetching tasks:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  }, rateLimitConfig.tasks);
 }
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, async (req) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await req.json();
     const validationResult = CreateTaskSchema.safeParse(body);
 
     if (!validationResult.success) {
@@ -79,4 +84,5 @@ export async function POST(request: NextRequest) {
     console.error('Error creating task:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  }, rateLimitConfig.tasks);
 }

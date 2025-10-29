@@ -3,8 +3,11 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
 import { CreateJournalEntrySchema, JournalEntryDTO, toJournalEntryDTO } from '@/lib/domain/journal';
+import { withRateLimit } from '@/middleware/rate-limit-middleware';
+import { rateLimitConfig } from '@/lib/rate-limit';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  return withRateLimit(request, async () => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -31,16 +34,18 @@ export async function GET() {
     console.error('Error fetching journal entries:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  }, rateLimitConfig.journal);
 }
 
 export async function POST(request: NextRequest) {
+  return withRateLimit(request, async (req) => {
   try {
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
+    const body = await req.json();
     const validationResult = CreateJournalEntrySchema.safeParse(body);
 
     if (!validationResult.success) {
@@ -74,4 +79,5 @@ export async function POST(request: NextRequest) {
     console.error('Error creating journal entry:', error);
     return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+  }, rateLimitConfig.journal);
 }

@@ -7,6 +7,7 @@ import type { Task, JournalEntry, Mood, Achievement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { getAchievementIcon } from '@/components/icons';
+import { NotificationManager } from '@/components/notification-manager';
 
 const moodVerbiage: Record<Mood, string> = {
   Happy: 'feeling happy',
@@ -149,6 +150,10 @@ export default function DashboardClient() {
             </Button>
           </CardFooter>
         </Card>
+
+        <div className="md:col-span-2">
+          <NotificationManager />
+        </div>
       </div>
     </div>
   );
