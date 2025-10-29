@@ -1,13 +1,15 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { useTaskStore, useJournalStore, useAchievementStore } from '@/lib/store';
 import type { Task, JournalEntry, Mood, Achievement } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { getAchievementIcon } from '@/components/icons';
 import { NotificationManager } from '@/components/notification-manager';
+import { fromTaskDTO } from '@/lib/domain/task';
+import { fromJournalEntryDTO } from '@/lib/domain/journal';
+import { useToast } from '@/hooks/use-toast';
 
 const moodVerbiage: Record<Mood, string> = {
   Happy: 'feeling happy',
@@ -19,16 +21,45 @@ const moodVerbiage: Record<Mood, string> = {
 
 
 export default function DashboardClient() {
-  const { tasks, fetchTasks } = useTaskStore();
-  const { entries: journalEntries, fetchEntries } = useJournalStore();
-  const { achievements, fetchAchievements } = useAchievementStore();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
+  const [achievements, setAchievements] = useState<Achievement[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
-    // Fetch data on component mount
-    fetchTasks();
-    fetchEntries();
-    fetchAchievements();
-  }, [fetchTasks, fetchEntries, fetchAchievements]);
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const [tasksRes, journalRes, rewardsRes] = await Promise.all([
+          fetch('/api/tasks'),
+          fetch('/api/journal'),
+          fetch('/api/rewards'),
+        ]);
+
+        if (tasksRes.ok) {
+          const taskDTOs = await tasksRes.json();
+          setTasks(taskDTOs.map(fromTaskDTO));
+        }
+
+        if (journalRes.ok) {
+          const entryDTOs = await journalRes.json();
+          setJournalEntries(entryDTOs.map(fromJournalEntryDTO));
+        }
+
+        if (rewardsRes.ok) {
+          const data = await rewardsRes.json();
+          setAchievements(data.achievements);
+        }
+      } catch (error) {
+        toast({ title: 'Error', description: 'Failed to load dashboard data', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const todaysTasks = tasks.filter(task => {
     const today = new Date();

@@ -1,17 +1,55 @@
 'use client';
 
-import { useState } from 'react';
-import { useTaskStore } from '@/lib/store';
+import { useState, useEffect } from 'react';
 import type { Task } from '@/lib/types';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
 import { Checkbox } from '../ui/checkbox';
 import { isSameDay } from 'date-fns';
 import { Badge } from '../ui/badge';
+import { fromTaskDTO } from '@/lib/domain/task';
+import { useToast } from '@/hooks/use-toast';
 
 export default function CalendarClient() {
-  const { tasks, toggleTask } = useTaskStore();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
+  const { toast } = useToast();
+
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/tasks');
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+      const taskDTOs = await response.json();
+      setTasks(taskDTOs.map(fromTaskDTO));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load tasks', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+
+  const toggleTask = async (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      if (!response.ok) throw new Error('Failed to update task');
+      setTasks(tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update task', variant: 'destructive' });
+    }
+  };
 
   const tasksOnSelectedDay = selectedDate ? tasks.filter(task => isSameDay(task.dueDate, selectedDate)) : [];
 

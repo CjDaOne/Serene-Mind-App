@@ -491,30 +491,144 @@ The app automatically sets these security headers on all protected routes:
 
 ---
 
-## 📊 Monitoring & Maintenance
+## 📊 Monitoring & Analytics
 
-### Analytics Setup (Optional)
+### Built-in Monitoring (Enabled by Default)
 
-Add Google Analytics or Vercel Analytics:
+The app includes production-ready monitoring out of the box:
 
-```env
-NEXT_PUBLIC_GA_ID=G-XXXXXXXXXX
+#### 1. Vercel Analytics ✅
+
+**Automatically enabled** - no configuration needed.
+
+**Features:**
+- Page view tracking
+- Web Vitals (LCP, FID, CLS)
+- User geography and devices
+- Real-time traffic data
+
+**How to view:**
+1. Go to your Vercel project dashboard
+2. Click **Analytics** tab
+3. View metrics for:
+   - Top pages
+   - Audience insights
+   - Performance scores
+   - Real User Monitoring (RUM)
+
+**Upgrade Options:**
+- **Hobby:** Free (500 events/day)
+- **Pro:** $10/month (unlimited events)
+
+#### 2. Structured Logging ✅
+
+**Location:** `src/lib/logger.ts`
+
+**Features:**
+- Production-safe logging (auto-sanitizes sensitive data)
+- Different log levels: `error`, `warn`, `info`, `debug`
+- JSON-formatted logs with timestamps
+- User context and error tracking
+
+**Usage in Code:**
+```typescript
+import { logger } from '@/lib/logger';
+
+// Error logging
+logger.error('Failed to create task', {
+  userId: session.user.id,
+  taskId: task.id,
+  error: error.message,
+});
+
+// Warning logging
+logger.warn('Rate limit approaching', {
+  userId: session.user.id,
+  endpoint: '/api/tasks',
+});
+
+// Info logging (development only)
+logger.info('Task created successfully', {
+  taskId: newTask.id,
+});
 ```
 
-### Error Tracking (Optional)
+**View Logs in Vercel:**
+1. Go to **Deployments** → Select deployment
+2. Click **Functions** tab
+3. Select a function (e.g., `/api/tasks`)
+4. View real-time logs
 
-Set up Sentry for error monitoring:
+#### 3. Error Boundary Reporting ✅
 
-```bash
-npm install @sentry/nextjs
-npx @sentry/wizard -i nextjs
-```
+**Location:** `src/app/error.tsx`
+
+**What it tracks:**
+- Error message and stack trace
+- Page URL where error occurred
+- Timestamp
+- Error digest (Next.js internal ID)
+
+**Automatic features:**
+- Logs to console (visible in Vercel logs)
+- User-friendly error UI
+- "Try Again" button to recover
+
+All errors are automatically logged with full context for debugging.
+
+### Advanced Error Tracking (Optional)
+
+For advanced error monitoring, see [`docs/SENTRY_SETUP.md`](docs/SENTRY_SETUP.md).
+
+**Sentry provides:**
+- Real-time error alerting
+- Error grouping and trends
+- Performance monitoring
+- User session replay
+- Team collaboration
+
+**When to add Sentry:**
+- 100+ active users
+- Need systematic error tracking
+- Want performance insights
+- Require alerting (email/Slack)
+
+**Cost:** Free tier (5,000 errors/month)
+
+### Monitoring Dashboard
+
+**What to monitor in Vercel:**
+
+1. **Function Logs** (Real-time)
+   - API errors and warnings
+   - Database connection issues
+   - Rate limiting events
+   - AI generation failures
+
+2. **Analytics** (Daily/Weekly)
+   - Page views and user sessions
+   - Web Vitals performance
+   - Device and browser distribution
+   - Geographic user data
+
+3. **Deployment Health**
+   - Build success/failure
+   - Function invocation count
+   - Bandwidth usage
+   - Error rate
 
 ### Regular Maintenance Tasks
 
-- **Weekly:** Check error logs and user feedback
-- **Monthly:** Review MongoDB usage and optimize queries
-- **Quarterly:** Update dependencies and run security audit
+- **Daily:** Monitor Vercel function logs for critical errors
+- **Weekly:** Review Analytics for usage trends
+- **Monthly:** 
+  - Review MongoDB usage and optimize queries
+  - Check Web Vitals scores (target 90+)
+  - Review error patterns and fix issues
+- **Quarterly:** 
+  - Update dependencies: `npm update`
+  - Run security audit: `npm audit`
+  - Review and rotate API keys
 - **As needed:** Scale MongoDB cluster based on usage
 
 ---

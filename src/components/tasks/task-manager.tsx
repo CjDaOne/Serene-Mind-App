@@ -4,8 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useTaskStore } from '@/lib/store';
-import type { Task, Priority } from '@/lib/types';
+import type { Task, Priority, Subtask } from '@/lib/types';
+import { fromTaskDTO } from '@/lib/domain/task';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -32,7 +32,8 @@ const taskSchema = z.object({
 type TaskForm = z.infer<typeof taskSchema>;
 
 export default function TaskManager() {
-  const { tasks, addTask, deleteTask, toggleTask, updateSubtask, addSubtasks, fetchTasks } = useTaskStore();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(false);
   const [isSuggestionLoading, setSuggestionLoading] = useState(false);
   const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -49,29 +50,91 @@ export default function TaskManager() {
 
   const { toast } = useToast();
 
+  const fetchTasks = async () => {
+    setLoading(true);
+    try {
+      const response = await fetch('/api/tasks');
+      if (!response.ok) throw new Error('Failed to fetch tasks');
+      const taskDTOs = await response.json();
+      setTasks(taskDTOs.map(fromTaskDTO));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to load tasks', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchTasks();
-  }, [fetchTasks]);
+  }, []);
 
-  const onSubmit = (data: TaskForm) => {
-    addTask({
-      title: data.title,
-      completed: false,
-      dueDate: data.dueDate || new Date(),
-      priority: data.priority,
-      subtasks: [],
-    });
-    form.reset();
-    toast({ title: 'Task added!', description: `Successfully added "${data.title}"` });
+  const onSubmit = async (data: TaskForm) => {
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: data.title,
+          completed: false,
+          dueDate: data.dueDate || new Date(),
+          priority: data.priority,
+          subtasks: [],
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to add task');
+      await fetchTasks();
+      form.reset();
+      toast({ title: 'Task added!', description: `Successfully added "${data.title}"` });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to add task', variant: 'destructive' });
+    }
   };
 
-  const handleDeleteTask = (taskId: string) => {
-  deleteTask(taskId);
-  toast({ title: "Task removed.", variant: 'destructive' });
+  const handleDeleteTask = async (taskId: string) => {
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
+      if (!response.ok) throw new Error('Failed to delete task');
+      setTasks(tasks.filter((t) => t.id !== taskId));
+      toast({ title: "Task removed.", variant: 'destructive' });
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to delete task', variant: 'destructive' });
+    }
   };
   
-  const toggleTaskCompletion = (taskId: string) => {
-    toggleTask(taskId);
+  const toggleTaskCompletion = async (taskId: string) => {
+    const task = tasks.find((t) => t.id === taskId);
+    if (!task) return;
+
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !task.completed }),
+      });
+      if (!response.ok) throw new Error('Failed to update task');
+      setTasks(tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)));
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to update task', variant: 'destructive' });
+    }
+  };
+
+  const updateSubtask = (taskId: string, subtaskId: string, completed: boolean) => {
+    setTasks(tasks.map((t) =>
+      t.id === taskId
+        ? {
+            ...t,
+            subtasks: t.subtasks.map((st) =>
+              st.id === subtaskId ? { ...st, completed } : st
+            ),
+          }
+        : t
+    ));
+  };
+
+  const addSubtasks = (taskId: string, subtasks: Subtask[]) => {
+    setTasks(tasks.map((t) =>
+      t.id === taskId ? { ...t, subtasks: [...t.subtasks, ...subtasks] } : t
+    ));
   };
 
   const handleSuggestSubtasks = async (task: Task) => {

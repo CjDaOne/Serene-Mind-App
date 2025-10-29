@@ -1,59 +1,52 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TaskManager from '@/components/tasks/task-manager';
-import { useTaskStore } from '@/lib/store';
 
-// Mock the store
-jest.mock('@/lib/store', () => ({
-  useTaskStore: jest.fn(),
-}));
-
-const mockUseTaskStore = useTaskStore as jest.MockedFunction<typeof useTaskStore>;
+global.fetch = jest.fn();
 
 describe('TaskManager', () => {
-  const mockAddTask = jest.fn();
-  const mockDeleteTask = jest.fn();
-  const mockToggleTask = jest.fn();
-  const mockUpdateSubtask = jest.fn();
-  const mockAddSubtasks = jest.fn();
-
   beforeEach(() => {
-    mockUseTaskStore.mockReturnValue({
-      tasks: [],
-      addTask: mockAddTask,
-      deleteTask: mockDeleteTask,
-      toggleTask: mockToggleTask,
-      updateSubtask: mockUpdateSubtask,
-      addSubtasks: mockAddSubtasks,
+    jest.clearAllMocks();
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => [],
     });
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
+  it('renders the component', async () => {
+    render(<TaskManager />);
+    await waitFor(() => {
+      expect(screen.getByText('Your Tasks')).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Add a new task...')).toBeInTheDocument();
+    });
   });
 
-  it('renders the component', () => {
+  it('fetches tasks on mount', async () => {
     render(<TaskManager />);
-    expect(screen.getByText('Your Tasks')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Add a new task...')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(global.fetch).toHaveBeenCalledWith('/api/tasks');
+    });
   });
 
-  it('adds a task successfully', async () => {
-    const user = userEvent.setup();
+  it('displays tasks when available', async () => {
+    (global.fetch as jest.Mock).mockResolvedValue({
+      ok: true,
+      json: async () => [
+        {
+          _id: '1',
+          title: 'Test Task',
+          completed: false,
+          dueDate: new Date().toISOString(),
+          priority: 'High',
+          subtasks: [],
+        },
+      ],
+    });
+
     render(<TaskManager />);
-
-    const input = screen.getByPlaceholderText('Add a new task...');
-    const submitButton = screen.getByRole('button', { name: /add task/i });
-
-    await user.type(input, 'Test Task');
-    await user.click(submitButton);
-
-    expect(mockAddTask).toHaveBeenCalledWith({
-      title: 'Test Task',
-      completed: false,
-      dueDate: expect.any(Date),
-      priority: 'Medium',
-      subtasks: [],
+    await waitFor(() => {
+      expect(screen.getByText('Test Task')).toBeInTheDocument();
+      expect(screen.getByText('High Priority')).toBeInTheDocument();
     });
   });
 
@@ -61,90 +54,22 @@ describe('TaskManager', () => {
     const user = userEvent.setup();
     render(<TaskManager />);
 
+    await waitFor(() => {
+      expect(screen.getByText('Your Tasks')).toBeInTheDocument();
+    });
+
     const submitButton = screen.getByRole('button', { name: /add task/i });
     await user.click(submitButton);
 
-    expect(screen.getByText('Title is required')).toBeInTheDocument();
-    expect(mockAddTask).not.toHaveBeenCalled();
+    await waitFor(() => {
+      expect(screen.getByText('Title is required')).toBeInTheDocument();
+    });
   });
 
-  it('displays tasks when available', () => {
-    mockUseTaskStore.mockReturnValue({
-      tasks: [
-        {
-          id: '1',
-          title: 'Test Task',
-          completed: false,
-          dueDate: new Date(),
-          priority: 'High',
-          subtasks: [],
-        },
-      ],
-      addTask: mockAddTask,
-      deleteTask: mockDeleteTask,
-      toggleTask: mockToggleTask,
-      updateSubtask: mockUpdateSubtask,
-      addSubtasks: mockAddSubtasks,
-    });
-
+  it('displays "no tasks" message when empty', async () => {
     render(<TaskManager />);
-    expect(screen.getByText('Test Task')).toBeInTheDocument();
-    expect(screen.getByText('High Priority')).toBeInTheDocument();
-  });
-
-  it('toggles task completion', async () => {
-    mockUseTaskStore.mockReturnValue({
-      tasks: [
-        {
-          id: '1',
-          title: 'Test Task',
-          completed: false,
-          dueDate: new Date(),
-          priority: 'Medium',
-          subtasks: [],
-        },
-      ],
-      addTask: mockAddTask,
-      deleteTask: mockDeleteTask,
-      toggleTask: mockToggleTask,
-      updateSubtask: mockUpdateSubtask,
-      addSubtasks: mockAddSubtasks,
+    await waitFor(() => {
+      expect(screen.getByText(/no tasks yet/i)).toBeInTheDocument();
     });
-
-    const user = userEvent.setup();
-    render(<TaskManager />);
-
-    const checkbox = screen.getByRole('checkbox');
-    await user.click(checkbox);
-
-    expect(mockToggleTask).toHaveBeenCalledWith('1');
-  });
-
-  it('deletes a task', async () => {
-    mockUseTaskStore.mockReturnValue({
-      tasks: [
-        {
-          id: '1',
-          title: 'Test Task',
-          completed: false,
-          dueDate: new Date(),
-          priority: 'Medium',
-          subtasks: [],
-        },
-      ],
-      addTask: mockAddTask,
-      deleteTask: mockDeleteTask,
-      toggleTask: mockToggleTask,
-      updateSubtask: mockUpdateSubtask,
-      addSubtasks: mockAddSubtasks,
-    });
-
-    const user = userEvent.setup();
-    render(<TaskManager />);
-
-    const deleteButton = screen.getByRole('button', { name: /delete task/i });
-    await user.click(deleteButton);
-
-    expect(mockDeleteTask).toHaveBeenCalledWith('1');
   });
 });

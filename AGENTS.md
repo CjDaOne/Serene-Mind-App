@@ -6,7 +6,9 @@
 - **Typecheck**: `npm run typecheck` (tsc --noEmit)
 - **Lint**: `npm run lint` (Next.js ESLint)
 - **AI Dev**: `npm run genkit:dev` or `npm run genkit:watch` (for Google Genkit AI flows)
-- **Test**: `npm test` (Jest with Testing Library)
+- **Test (Unit)**: `npm test` (Jest with Testing Library)
+- **Test (E2E)**: `npm run test:e2e` (Playwright E2E tests)
+- **Test (E2E UI)**: `npm run test:e2e:ui` (Playwright interactive mode)
 
 ## Architecture
 - **Framework**: Next.js 15 with App Router (TypeScript)
