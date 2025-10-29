@@ -10,6 +10,9 @@ import { NotificationManager } from '@/components/notification-manager';
 import { fromTaskDTO } from '@/lib/domain/task';
 import { fromJournalEntryDTO } from '@/lib/domain/journal';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from 'next-auth/react';
+import { getDemoTasks, getDemoJournalEntries, getDemoAchievements } from '@/lib/demo-data';
+import { GuestBanner } from '@/components/guest-banner';
 
 const moodVerbiage: Record<Mood, string> = {
   Happy: 'feeling happy',
@@ -26,9 +29,17 @@ export default function DashboardClient() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchData = async () => {
+      if (session?.user?.isGuest) {
+        setTasks(getDemoTasks());
+        setJournalEntries(getDemoJournalEntries());
+        setAchievements(getDemoAchievements());
+        return;
+      }
+
       setLoading(true);
       try {
         const [tasksRes, journalRes, rewardsRes] = await Promise.all([
@@ -59,7 +70,7 @@ export default function DashboardClient() {
     };
 
     fetchData();
-  }, []);
+  }, [session]);
 
   const todaysTasks = tasks.filter(task => {
     const today = new Date();
@@ -73,6 +84,8 @@ export default function DashboardClient() {
 
   return (
     <div className="flex flex-col gap-8">
+      {session?.user?.isGuest && <GuestBanner />}
+      
       <div className="text-center bg-gradient-to-r from-primary to-primary/70 text-primary-foreground p-8 rounded-lg shadow-lg">
         <h1 className="text-4xl font-bold font-headline">Hello, Wellness Seeker!</h1>
         <p className="text-lg mt-2 text-primary-foreground/80">"Every day is a new opportunity to grow."</p>

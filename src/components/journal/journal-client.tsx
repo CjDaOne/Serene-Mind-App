@@ -14,6 +14,9 @@ import { getJournalInsights } from '@/ai/flows/journal-insights';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../ui/dialog';
 import { Separator } from '../ui/separator';
+import { useSession } from 'next-auth/react';
+import { getDemoJournalEntries } from '@/lib/demo-data';
+import { GuestLimitModal } from '@/components/guest-limit-modal';
 
 const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
   { value: 'Sad', icon: Frown, color: 'text-gray-500' },
@@ -22,6 +25,8 @@ const moodOptions: { value: Mood; icon: React.ElementType; color: string }[] = [
   { value: 'Happy', icon: Smile, color: 'text-green-500' },
   { value: 'Excited', icon: Star, color: 'text-yellow-500' },
 ];
+
+const GUEST_JOURNAL_LIMIT = 3;
 
 export default function JournalClient() {
   const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
@@ -32,9 +37,16 @@ export default function JournalClient() {
   const [isLoadingInsights, setIsLoadingInsights] = useState(false);
   const [isInsightsSheetOpen, setInsightsSheetOpen] = useState(false);
   const [isAddEntryDialogOpen, setAddEntryDialogOpen] = useState(false);
+  const [showLimitModal, setShowLimitModal] = useState(false);
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   const fetchEntries = async () => {
+    if (session?.user?.isGuest) {
+      setJournalEntries(getDemoJournalEntries());
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/journal');
@@ -50,10 +62,31 @@ export default function JournalClient() {
 
   useEffect(() => {
     fetchEntries();
-  }, []);
+  }, [session]);
 
   const handleAddEntry = async () => {
     if (newEntryContent.trim()) {
+      if (session?.user?.isGuest) {
+        // Check guest limit
+        if (journalEntries.length >= GUEST_JOURNAL_LIMIT) {
+          setShowLimitModal(true);
+          return;
+        }
+        
+        const newEntry: JournalEntry = {
+          id: `guest-journal-${Date.now()}`,
+          date: new Date(),
+          mood: selectedMood,
+          content: newEntryContent,
+        };
+        setJournalEntries([newEntry, ...journalEntries]);
+        setNewEntryContent('');
+        setSelectedMood('Happy');
+        toast({ title: 'Journal entry saved!' });
+        setAddEntryDialogOpen(false);
+        return;
+      }
+
       try {
         const response = await fetch('/api/journal', {
           method: 'POST',
@@ -208,7 +241,15 @@ export default function JournalClient() {
                 )}
             </div>
           </SheetContent>
-        </Sheet>
+          </Sheet>
+
+                 <GuestLimitModal
+           open={showLimitModal}
+           onOpenChange={setShowLimitModal}
+           limitType="journals"
+           currentCount={journalEntries.length}
+           maxCount={GUEST_JOURNAL_LIMIT}
+         />
     </div>
   );
 }

@@ -11,9 +11,21 @@ export default withAuth(
     response.headers.set('X-XSS-Protection', '1; mode=block')
     response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
     
+    // Add guest mode indicator header
+    const token = req.nextauth.token
+    if (token?.isGuest) {
+      response.headers.set('X-Guest-Mode', 'true')
+    }
+    
     return response
   },
   {
+    callbacks: {
+      authorized: ({ token }) => {
+        // Allow both authenticated users and guest sessions
+        return !!token
+      },
+    },
     pages: {
       signIn: '/auth/signin',
     },

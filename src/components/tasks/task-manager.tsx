@@ -22,6 +22,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { getDemoTasks } from '@/lib/demo-data';
+import { GuestLimitModal } from '@/components/guest-limit-modal';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -31,6 +34,8 @@ const taskSchema = z.object({
 
 type TaskForm = z.infer<typeof taskSchema>;
 
+const GUEST_TASK_LIMIT = 5;
+
 export default function TaskManager() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(false);
@@ -38,6 +43,8 @@ export default function TaskManager() {
   const [suggestionDialogOpen, setSuggestionDialogOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [activeTaskForSuggestion, setActiveTaskForSuggestion] = useState<Task | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+  const { data: session } = useSession();
 
   const form = useForm<TaskForm>({
     resolver: zodResolver(taskSchema),
@@ -51,6 +58,11 @@ export default function TaskManager() {
   const { toast } = useToast();
 
   const fetchTasks = async () => {
+    if (session?.user?.isGuest) {
+      setTasks(getDemoTasks());
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/tasks');
@@ -66,9 +78,30 @@ export default function TaskManager() {
 
   useEffect(() => {
     fetchTasks();
-  }, []);
+  }, [session]);
 
   const onSubmit = async (data: TaskForm) => {
+    if (session?.user?.isGuest) {
+      // Check guest limit
+      if (tasks.length >= GUEST_TASK_LIMIT) {
+        setShowLimitModal(true);
+        return;
+      }
+      
+      const newTask: Task = {
+        id: `guest-task-${Date.now()}`,
+        title: data.title,
+        completed: false,
+        dueDate: data.dueDate || new Date(),
+        priority: data.priority,
+        subtasks: [],
+      };
+      setTasks([...tasks, newTask]);
+      form.reset();
+      toast({ title: 'Task added!', description: `Successfully added "${data.title}"` });
+      return;
+    }
+
     try {
       const response = await fetch('/api/tasks', {
         method: 'POST',
@@ -91,6 +124,12 @@ export default function TaskManager() {
   };
 
   const handleDeleteTask = async (taskId: string) => {
+    if (session?.user?.isGuest) {
+      setTasks(tasks.filter((t) => t.id !== taskId));
+      toast({ title: "Task removed." });
+      return;
+    }
+    
     try {
       const response = await fetch(`/api/tasks/${taskId}`, { method: 'DELETE' });
       if (!response.ok) throw new Error('Failed to delete task');
@@ -104,6 +143,11 @@ export default function TaskManager() {
   const toggleTaskCompletion = async (taskId: string) => {
     const task = tasks.find((t) => t.id === taskId);
     if (!task) return;
+
+    if (session?.user?.isGuest) {
+      setTasks(tasks.map((t) => (t.id === taskId ? { ...t, completed: !t.completed } : t)));
+      return;
+    }
 
     try {
       const response = await fetch(`/api/tasks/${taskId}`, {
@@ -337,6 +381,14 @@ export default function TaskManager() {
             </DialogContent>
         </Dialog>
       )}
+
+      <GuestLimitModal
+        open={showLimitModal}
+        onOpenChange={setShowLimitModal}
+        limitType="tasks"
+        currentCount={tasks.length}
+        maxCount={GUEST_TASK_LIMIT}
+      />
     </div>
   );
 }
