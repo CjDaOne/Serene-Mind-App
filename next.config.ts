@@ -61,6 +61,22 @@ const nextConfig: NextConfig = {
       },
     ];
   },
+  webpack: (config, { isServer }) => {
+    if (isServer) {
+      // Ignore optional Genkit dependencies
+      config.externals.push({
+        '@opentelemetry/exporter-jaeger': 'commonjs @opentelemetry/exporter-jaeger',
+        '@genkit-ai/firebase': 'commonjs @genkit-ai/firebase'
+      });
+    }
+    // Ignore warnings for optional modules
+    config.ignoreWarnings = [
+      /require\.extensions/,
+      /@opentelemetry\/exporter-jaeger/,
+      /@genkit-ai\/firebase/
+    ];
+    return config;
+  }
 };
 
 export default withSerwist(nextConfig);
