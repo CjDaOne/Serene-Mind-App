@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 import clientPromise from '@/lib/mongodb';
-import { JournalEntrySchema, JournalEntryDTO, toJournalEntryDTO } from '@/lib/domain/journal';
+import { CreateJournalEntrySchema, JournalEntryDTO, toJournalEntryDTO } from '@/lib/domain/journal';
 
 export async function GET() {
   try {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validationResult = JournalEntrySchema.safeParse(body);
+    const validationResult = CreateJournalEntrySchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(

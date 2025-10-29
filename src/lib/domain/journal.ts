@@ -9,11 +9,16 @@ export const JournalEntrySchema = z.object({
   content: z.string().min(1),
 });
 
+export const CreateJournalEntrySchema = JournalEntrySchema.omit({ id: true }).extend({
+  date: z.coerce.date(),
+});
+
 export const JournalEntryDTO = JournalEntrySchema.extend({
   date: z.string().datetime(),
 });
 
 export type JournalEntry = z.infer<typeof JournalEntrySchema>;
+export type CreateJournalEntry = z.infer<typeof CreateJournalEntrySchema>;
 export type JournalEntryDTO = z.infer<typeof JournalEntryDTO>;
 export type Mood = z.infer<typeof Mood>;
 

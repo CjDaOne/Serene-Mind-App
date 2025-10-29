@@ -18,11 +18,16 @@ export const TaskSchema = z.object({
   priority: Priority,
 });
 
+export const CreateTaskSchema = TaskSchema.omit({ id: true }).extend({
+  dueDate: z.coerce.date(),
+});
+
 export const TaskDTO = TaskSchema.extend({
   dueDate: z.string().datetime(),
 });
 
 export type Task = z.infer<typeof TaskSchema>;
+export type CreateTask = z.infer<typeof CreateTaskSchema>;
 export type TaskDTO = z.infer<typeof TaskDTO>;
 export type Subtask = z.infer<typeof SubtaskSchema>;
 export type Priority = z.infer<typeof Priority>;
