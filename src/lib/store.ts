@@ -92,7 +92,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set({ error: error instanceof Error ? error.message : 'Unknown error', loading: false });
     }
   },
-  updateSubtask: (taskId, subtaskId, completed) =>
+  updateSubtask: async (taskId, subtaskId, completed) => {
     set((state) => ({
       tasks: state.tasks.map((t) =>
         t.id === taskId
@@ -104,13 +104,15 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
             }
           : t
       ),
-    })),
-  addSubtasks: (taskId, subtasks) =>
+    }));
+  },
+  addSubtasks: async (taskId, subtasks) => {
     set((state) => ({
       tasks: state.tasks.map((t) =>
         t.id === taskId ? { ...t, subtasks: [...t.subtasks, ...subtasks] } : t
       ),
-    })),
+    }));
+  },
 }));
 
 interface JournalStore {

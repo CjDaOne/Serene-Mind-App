@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/[...nextauth]/route';
-import clientPromise from '@/lib/mongodb';
-import { TaskSchema, TaskDTO, fromTaskDTO, toTaskDTO } from '@/lib/domain/task';
+import { authOptions } from '@/lib/auth';
+import { getDatabase } from '@/lib/db-init';
+import { CreateTaskSchema, TaskDTO, fromTaskDTO, toTaskDTO } from '@/lib/domain/task';
 
 export async function GET() {
   try {
@@ -11,8 +11,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const client = await clientPromise;
-    const db = client.db('serene-mind');
+    const db = await getDatabase();
 
     const tasks = await db.collection('tasks')
       .find({ userId: session.user.id })
@@ -24,7 +23,7 @@ export async function GET() {
       title: task.title,
       description: task.description || '',
       completed: task.completed,
-      dueDate: task.dueDate,
+      dueDate: task.dueDate.toISOString(),
       priority: task.priority,
       subtasks: task.subtasks || [],
     }));
@@ -44,7 +43,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const validationResult = TaskSchema.safeParse(body);
+    const validationResult = CreateTaskSchema.safeParse(body);
 
     if (!validationResult.success) {
       return NextResponse.json(
@@ -54,8 +53,7 @@ export async function POST(request: NextRequest) {
     }
 
     const task = validationResult.data;
-    const client = await clientPromise;
-    const db = client.db('serene-mind');
+    const db = await getDatabase();
 
     const taskDoc = {
       ...task,

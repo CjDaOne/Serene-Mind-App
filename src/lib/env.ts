@@ -2,6 +2,7 @@ import { z } from 'zod';
 
 const EnvSchema = z.object({
   MONGODB_URI: z.string().url().optional(),
+  MONGODB_DB: z.string().default('serene-mind'),
   GOOGLE_API_KEY: z.string().min(1).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
