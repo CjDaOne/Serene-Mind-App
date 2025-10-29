@@ -2,11 +2,13 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useSession, signIn, signOut } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 
 export default function LandingPage() {
   const { data: session } = useSession();
+  const router = useRouter();
 
   return (
     <div className="bg-gray-50 text-gray-800">
@@ -24,11 +26,11 @@ export default function LandingPage() {
           {session ? (
           <div className="flex items-center gap-4">
           <span>Welcome, {session.user?.name}</span>
-            <Button onClick={() => signOut()}>Logout</Button>
-            </div>
-           ) : (
-             <Button onClick={() => signIn('google')}>Login with Google</Button>
-           )}
+          <Button onClick={() => signOut()}>Logout</Button>
+          </div>
+          ) : (
+          <Button onClick={() => router.push('/auth/signin')}>Login</Button>
+          )}
         </div>
       </header>
 
@@ -46,7 +48,7 @@ export default function LandingPage() {
             <Button
             size="lg"
             className="mt-8 text-lg font-semibold hover:scale-105 transition-transform transform"
-            onClick={() => session ? null : signIn('google')}
+            onClick={() => !session && router.push('/auth/signin')}
               asChild={!!session}
             >
               {session ? (
@@ -184,7 +186,7 @@ export default function LandingPage() {
             size="lg"
             variant="secondary"
             className="text-lg font-semibold hover:scale-105 transition-transform transform"
-              onClick={() => session ? null : signIn('google')}
+              onClick={() => !session && router.push('/auth/signin')}
               asChild={!!session}
             >
               {session ? (
