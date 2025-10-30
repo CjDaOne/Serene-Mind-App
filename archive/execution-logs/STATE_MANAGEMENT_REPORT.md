@@ -19,7 +19,7 @@ After Agent 3's Server Component migration, **Zustand is now redundant**. All st
 
 ### Current Zustand Usage
 
-**File:** [src/lib/store.ts](file:///home/cjnf/Serene-Mind-App/src/lib/store.ts)
+**File:** [src/lib/store.ts](file:///home/cjnf/Serene-Mind-App/src/lib/store.ts.backup)
 
 Three Zustand stores exist:
 
@@ -279,7 +279,7 @@ Server Components can pre-fetch data and pass as props, eliminating client fetch
 - [Next.js Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 - [React useState](https://react.dev/reference/react/useState)
 - [Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
-- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/PRODUCTION_IMPROVEMENTS.md)
+- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PRODUCTION_IMPROVEMENTS.md)
 
 ---
 

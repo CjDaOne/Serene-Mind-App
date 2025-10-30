@@ -238,7 +238,7 @@ While not required for this phase, future enhancements could include:
 
 - [Next.js Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 - [NextAuth.js getServerSession](https://next-auth.js.org/configuration/nextjs#getserversession)
-- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/PRODUCTION_IMPROVEMENTS.md)
+- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PRODUCTION_IMPROVEMENTS.md)
 
 ---
 

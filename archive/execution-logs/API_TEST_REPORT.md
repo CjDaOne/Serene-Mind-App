@@ -41,14 +41,14 @@ All API endpoints have been thoroughly reviewed for:
 - **Security:** ✅ Associates task with `session.user.id`, validates input
 
 ### 4. `/api/tasks/[id]` (PUT)
-- **File:** [`src/app/api/tasks/[id]/route.ts`](file:///home/cjnf/Serene-Mind-App/src/app/api/tasks/%5Bid%5D/route.ts)
+- **File:** [`src/app/api/tasks/[id]/route.ts`](file:///home/cjnf/Serene-Mind-App/src/app/api/tasks/[id]/route.ts)
 - **Auth Required:** Yes
 - **Purpose:** Update existing task
 - **Response:** `{ success: true }` or 404
 - **Security:** ✅ Only updates if userId matches, returns 404 for unauthorized access
 
 ### 5. `/api/tasks/[id]` (DELETE)
-- **File:** [`src/app/api/tasks/[id]/route.ts`](file:///home/cjnf/Serene-Mind-App/src/app/api/tasks/%5Bid%5D/route.ts)
+- **File:** [`src/app/api/tasks/[id]/route.ts`](file:///home/cjnf/Serene-Mind-App/src/app/api/tasks/[id]/route.ts)
 - **Auth Required:** Yes
 - **Purpose:** Delete task
 - **Response:** `{ success: true }` or 404

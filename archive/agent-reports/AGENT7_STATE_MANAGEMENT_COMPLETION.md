@@ -284,8 +284,8 @@ useEffect(() => {
 - [Next.js Server Components](https://nextjs.org/docs/app/building-your-application/rendering/server-components)
 - [React useState](https://react.dev/reference/react/useState)
 - [React Server Actions](https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations)
-- [STATE_MANAGEMENT_REPORT.md](file:///home/cjnf/Serene-Mind-App/STATE_MANAGEMENT_REPORT.md)
-- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/PRODUCTION_IMPROVEMENTS.md)
+- [STATE_MANAGEMENT_REPORT.md](file:///home/cjnf/Serene-Mind-App/archive/execution-logs/STATE_MANAGEMENT_REPORT.md)
+- [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PRODUCTION_IMPROVEMENTS.md)
 
 ---
 

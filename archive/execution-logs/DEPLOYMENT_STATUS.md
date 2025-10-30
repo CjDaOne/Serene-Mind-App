@@ -291,9 +291,9 @@ Special recognition to all 12 agents for flawless parallel execution:
 ## 📞 Support Resources
 
 - **Deployment Guide:** [DEPLOYMENT.md](file:///home/cjnf/Serene-Mind-App/DEPLOYMENT.md)
-- **Database Setup:** [DATABASE_SETUP.md](file:///home/cjnf/Serene-Mind-App/DATABASE_SETUP.md)
+- **Database Setup:** [DATABASE_SETUP.md](file:///home/cjnf/Serene-Mind-App/docs/architecture/DATABASE_SETUP.md)
 - **Environment Variables:** [.env.local.example](file:///home/cjnf/Serene-Mind-App/.env.local.example)
-- **Project Tracking:** [PROJECT_EXECUTION.md](file:///home/cjnf/Serene-Mind-App/PROJECT_EXECUTION.md)
+- **Project Tracking:** [PROJECT_EXECUTION.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PROJECT_EXECUTION.md)
 - **Agent Documentation:** [AGENTS.md](file:///home/cjnf/Serene-Mind-App/AGENTS.md)
 
 ---

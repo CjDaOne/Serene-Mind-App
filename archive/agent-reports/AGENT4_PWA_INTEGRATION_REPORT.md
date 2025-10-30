@@ -203,7 +203,7 @@ Added comprehensive documentation covering:
 
 ## ✅ Phase 1, Agent 4 Complete
 
-All tasks from [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/PRODUCTION_IMPROVEMENTS.md) Phase 1, Agent 4 are complete:
+All tasks from [PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PRODUCTION_IMPROVEMENTS.md) Phase 1, Agent 4 are complete:
 
 - [x] Add InstallPrompt to src/app/layout.tsx
 - [x] Add NotificationManager to appropriate page

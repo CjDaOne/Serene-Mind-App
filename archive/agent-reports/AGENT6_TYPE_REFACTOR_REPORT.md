@@ -69,7 +69,7 @@ The current type architecture is **already well-designed** with:
 - [x] Assessed if refactor would add value (Decision: No)
 
 ### 3. Type Architecture Documentation ✅
-- [x] Created comprehensive [`src/lib/TYPES_GUIDE.md`](file:///home/cjnf/Serene-Mind-App/src/lib/TYPES_GUIDE.md)
+- [x] Created comprehensive [`src/lib/TYPES_GUIDE.md`](file:///home/cjnf/Serene-Mind-App/docs/architecture/TYPES_GUIDE.md)
 - [x] Documented type hierarchy and layers
 - [x] Explained when to use each type category
 - [x] Provided code examples for common patterns
@@ -92,7 +92,7 @@ The current type architecture is **already well-designed** with:
 ## 📁 Files Created
 
 ### New Documentation
-1. **[src/lib/TYPES_GUIDE.md](file:///home/cjnf/Serene-Mind-App/src/lib/TYPES_GUIDE.md)** (NEW)
+1. **[src/lib/TYPES_GUIDE.md](file:///home/cjnf/Serene-Mind-App/docs/architecture/TYPES_GUIDE.md)** (NEW)
    - Complete type architecture guide
    - Type hierarchy visualization
    - Usage guidelines by layer
@@ -102,11 +102,11 @@ The current type architecture is **already well-designed** with:
    - Migration guide
    - Design decisions explained
 
-2. **[AGENT6_TYPE_REFACTOR_REPORT.md](file:///home/cjnf/Serene-Mind-App/AGENT6_TYPE_REFACTOR_REPORT.md)** (NEW)
+2. **[AGENT6_TYPE_REFACTOR_REPORT.md](file:///home/cjnf/Serene-Mind-App/archive/agent-reports/AGENT6_TYPE_REFACTOR_REPORT.md)** (NEW)
    - This completion report
 
 ### Updated Files
-3. **[PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/PRODUCTION_IMPROVEMENTS.md)** (UPDATED)
+3. **[PRODUCTION_IMPROVEMENTS.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/PRODUCTION_IMPROVEMENTS.md)** (UPDATED)
    - Marked Agent 6 tasks as complete
    - Updated progress tracking (55% overall)
    - Updated Team Beta progress (46%)
