@@ -33,13 +33,16 @@ Simply deploy the app and guest mode is ready to use!
 
 ## 📋 Prerequisites
 
-Before deploying, ensure you have:
+Before deploying, ensure you have accounts for:
 
-- ✅ MongoDB Atlas account (free tier available)
-- ✅ Google Cloud Console account (for OAuth)
-- ✅ Email service account (Resend recommended - free tier)
-- ✅ Vercel account (free tier available)
-- ✅ Domain name (optional, Vercel provides free subdomain)
+- ✅ **MongoDB Atlas** (free tier) - [Sign up](https://cloud.mongodb.com)
+- ✅ **Google Cloud Console** - [Console](https://console.cloud.google.com)
+- ✅ **Email Service** - Resend recommended ([Sign up](https://resend.com))
+- ✅ **Vercel** (free tier) - [Sign up](https://vercel.com)
+- ✅ **Google AI Studio** - [Get API key](https://aistudio.google.com/app/apikey)
+- ✅ **Domain** (optional - Vercel provides free subdomain)
+
+**Need local setup first?** See [GETTING_STARTED.md](GETTING_STARTED.md).
 
 ---
 
@@ -677,7 +680,17 @@ Your deployment is successful when:
 
 ---
 
-## 📞 Support Resources
+## 📚 Additional Documentation
+
+Need more help? See our comprehensive documentation:
+
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Local development setup
+- **[docs/INDEX.md](docs/INDEX.md)** - Master documentation index
+- **[docs/architecture/DATABASE_SETUP.md](docs/architecture/DATABASE_SETUP.md)** - Database configuration details
+- **[docs/security/SENTRY_SETUP.md](docs/security/SENTRY_SETUP.md)** - Error monitoring setup
+- **[docs/features/GUEST_MODE.md](docs/features/GUEST_MODE.md)** - Guest mode technical guide
+
+## 📞 External Resources
 
 - **Vercel Docs:** https://vercel.com/docs
 - **NextAuth Docs:** https://next-auth.js.org

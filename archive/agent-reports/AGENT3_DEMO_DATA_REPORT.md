@@ -170,7 +170,7 @@ if (session?.user?.isGuest) {
 - [src/components/tasks/task-manager.tsx](file:///home/cjnf/Serene-Mind-App/src/components/tasks/task-manager.tsx)
 - [src/components/journal/journal-client.tsx](file:///home/cjnf/Serene-Mind-App/src/components/journal/journal-client.tsx)
 - [src/components/rewards/rewards-client.tsx](file:///home/cjnf/Serene-Mind-App/src/components/rewards/rewards-client.tsx)
-- [GUEST_MODE_IMPLEMENTATION.md](file:///home/cjnf/Serene-Mind-App/GUEST_MODE_IMPLEMENTATION.md)
+- [GUEST_MODE_IMPLEMENTATION.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/GUEST_MODE_IMPLEMENTATION.md)
 
 ---
 

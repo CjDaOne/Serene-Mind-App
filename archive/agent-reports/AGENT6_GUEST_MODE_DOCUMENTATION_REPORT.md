@@ -56,7 +56,7 @@ Agent 6 was tasked with creating complete documentation for the planned guest mo
 - ✅ Future enhancements (Phase 2 features)
 - ✅ Complete file structure and code samples
 
-**Location:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE.md)
+**Location:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE.md)
 
 ### 4. User-Facing FAQ ✅
 
@@ -84,7 +84,7 @@ Agent 6 was tasked with creating complete documentation for the planned guest mo
 - ✅ "I love Guest Mode! Should I still sign up?"
 - ✅ "Still have questions?" (support section)
 
-**Location:** [docs/GUEST_MODE_FAQ.md](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE_FAQ.md)
+**Location:** [docs/GUEST_MODE_FAQ.md](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE_FAQ.md)
 
 ### 5. AGENTS.md Updates ✅
 
@@ -112,7 +112,7 @@ Agent 6 was tasked with creating complete documentation for the planned guest mo
 - ✅ Linked to implementation guide for development team
 - ✅ Updated project status at top
 
-**Location:** [NEXT_STEPS.md](file:///home/cjnf/Serene-Mind-App/NEXT_STEPS.md)
+**Location:** [NEXT_STEPS.md](file:///home/cjnf/Serene-Mind-App/archive/execution-logs/NEXT_STEPS.md)
 
 ### 7. GUEST_MODE_IMPLEMENTATION.md Updates ✅
 
@@ -125,7 +125,7 @@ Agent 6 was tasked with creating complete documentation for the planned guest mo
 - ✅ Documented all deliverables with metrics
 - ✅ Updated last modified date and status
 
-**Location:** [GUEST_MODE_IMPLEMENTATION.md](file:///home/cjnf/Serene-Mind-App/GUEST_MODE_IMPLEMENTATION.md)
+**Location:** [GUEST_MODE_IMPLEMENTATION.md](file:///home/cjnf/Serene-Mind-App/archive/task-boards/GUEST_MODE_IMPLEMENTATION.md)
 
 ---
 
@@ -286,7 +286,7 @@ interface GuestSessionToken {
 - ✅ Security guidelines
 - ✅ Testing strategies
 
-**Start here:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE.md)
+**Start here:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE.md)
 
 ### For Product Team
 
@@ -297,7 +297,7 @@ interface GuestSessionToken {
 - ✅ Upgrade prompts
 - ✅ FAQ for support
 
-**Start here:** [docs/GUEST_MODE_FAQ.md](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE_FAQ.md)
+**Start here:** [docs/GUEST_MODE_FAQ.md](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE_FAQ.md)
 
 ### For DevOps Team
 
@@ -412,7 +412,7 @@ interface GuestSessionToken {
 7. All features work in guest mode
 8. Security (token validation, rate limits)
 
-**Reference:** [docs/GUEST_MODE.md#testing](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE.md#testing)
+**Reference:** [docs/GUEST_MODE.md#testing](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE.md#testing)
 
 ### For Development Team
 
@@ -423,7 +423,7 @@ interface GuestSessionToken {
 4. **Landing:** "Try Demo" button on homepage
 5. **Testing:** Verify all flows work
 
-**Full guide:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/GUEST_MODE.md)
+**Full guide:** [docs/GUEST_MODE.md](file:///home/cjnf/Serene-Mind-App/docs/features/GUEST_MODE.md)
 
 ---
 

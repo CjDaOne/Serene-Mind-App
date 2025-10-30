@@ -108,32 +108,29 @@ Visit the live app and click **"Try Demo"** to explore all features without crea
 - ✅ Try tasks, journaling, calendar, and more
 - ✅ 30-minute guest session
 
-### Prerequisites for Self-Hosting
+### Local Development Setup
 
-- Node.js 18+ and npm
-- MongoDB Atlas account (free tier)
-- Google Cloud account (for OAuth)
-- Email service account (Resend recommended)
+Want to run it locally? See **[GETTING_STARTED.md](GETTING_STARTED.md)** for a complete setup guide.
 
-### Installation
+**Quick version:**
 
 ```bash
-# 1. Clone the repository
+# 1. Clone and install
 git clone https://github.com/CjDaOne/Serene-Mind-App.git
 cd Serene-Mind-App
-
-# 2. Install dependencies
 npm install
 
-# 3. Set up environment variables
+# 2. Configure environment
 cp .env.local.example .env.local
-# Edit .env.local with your credentials (see setup guide below)
+# Edit .env.local with your credentials
 
-# 4. Run development server
+# 3. Run development server
 npm run dev
 ```
 
-Visit [http://localhost:3000](http://localhost:3000) to see your app.
+Visit [http://localhost:3001](http://localhost:3001) to see your app.
+
+**Need help?** See [GETTING_STARTED.md](GETTING_STARTED.md) for detailed setup instructions.
 
 ---
 
@@ -505,12 +502,21 @@ Found a bug or have an idea? [Open an issue](https://github.com/CjDaOne/Serene-M
 
 ---
 
+## 📚 Documentation
+
+- **[GETTING_STARTED.md](GETTING_STARTED.md)** - Quick setup guide (5 minutes)
+- **[docs/INDEX.md](docs/INDEX.md)** - Master documentation index
+- **[DEPLOYMENT.md](DEPLOYMENT.md)** - Production deployment guide
+- **[AGENTS.md](AGENTS.md)** - Development commands and conventions
+- **[docs/architecture/OVERVIEW.md](docs/architecture/OVERVIEW.md)** - System architecture
+
 ## 📞 Support
 
-- **Documentation:** See [DEPLOYMENT.md](DEPLOYMENT.md) for deployment help
-- **API Reference:** Check [AGENTS.md](AGENTS.md) for development guidelines
-- **Issues:** Report bugs via GitHub Issues
-- **Discussions:** Join GitHub Discussions for questions
+- **Documentation:** See [docs/INDEX.md](docs/INDEX.md) for all guides
+- **Setup Help:** Check [GETTING_STARTED.md](GETTING_STARTED.md)
+- **Deployment Help:** See [DEPLOYMENT.md](DEPLOYMENT.md)
+- **Issues:** Report bugs via [GitHub Issues](https://github.com/CjDaOne/Serene-Mind-App/issues)
+- **Discussions:** Join [GitHub Discussions](https://github.com/CjDaOne/Serene-Mind-App/discussions)
 
 ---
 
@@ -557,4 +563,13 @@ Special thanks to the open-source community for making this possible.
 
 ---
 
-**Ready to deploy?** Check out [DEPLOYMENT.md](DEPLOYMENT.md) for the complete guide! 🚀
+## 🎬 Next Steps
+
+- **🚀 New to the project?** Start with [GETTING_STARTED.md](GETTING_STARTED.md)
+- **📖 Need documentation?** Browse [docs/INDEX.md](docs/INDEX.md)
+- **🚢 Ready to deploy?** Follow [DEPLOYMENT.md](DEPLOYMENT.md)
+- **🔧 Want to contribute?** See development guidelines above
+
+---
+
+**Built with ❤️ for mental wellness** | [Report Issues](https://github.com/CjDaOne/Serene-Mind-App/issues) | [Contribute](CONTRIBUTING.md)

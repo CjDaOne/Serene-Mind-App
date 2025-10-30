@@ -136,7 +136,7 @@ Conduct a comprehensive audit of all recent changes to identify:
 - [x] Test push notifications → **BLOCKED** (build errors)
 - [x] Document all failures and successes ✅ See AGENT_A3_FEATURE_TEST_REPORT.md
 
-**Report:** [AGENT_A3_FEATURE_TEST_REPORT.md](file:///home/cjnf/Serene-Mind-App/AGENT_A3_FEATURE_TEST_REPORT.md)
+**Report:** [AGENT_A3_FEATURE_TEST_REPORT.md](file:///home/cjnf/Serene-Mind-App/archive/agent-reports/AGENT_A3_FEATURE_TEST_REPORT.md)
 **Status:** 🚫 BLOCKED - All manual testing blocked by critical build errors | **Issues Found:** 8
 
 #### Agent A4: Build-Verifier ✅ COMPLETE
@@ -149,7 +149,7 @@ Conduct a comprehensive audit of all recent changes to identify:
 - [x] Verify all routes generated → **N/A** (build failed)
 - [x] Document complete results → ✅ See AGENT_A4_BUILD_VERIFICATION_REPORT.md
 
-**Report:** [AGENT_A4_BUILD_VERIFICATION_REPORT.md](file:///home/cjnf/Serene-Mind-App/AGENT_A4_BUILD_VERIFICATION_REPORT.md)
+**Report:** [AGENT_A4_BUILD_VERIFICATION_REPORT.md](file:///home/cjnf/Serene-Mind-App/archive/agent-reports/AGENT_A4_BUILD_VERIFICATION_REPORT.md)
 **Grade:** F (FAILING) | **Blockers:** Missing mongodb, @testing-library/dom
 
 #### Agent A5: Component-Inspector
@@ -172,7 +172,7 @@ Conduct a comprehensive audit of all recent changes to identify:
 - [x] Review security best practices
 - [x] Document standards violations
 
-**Report:** [AGENT_A6_STANDARDS_CHECK_REPORT.md](file:///home/cjnf/Serene-Mind-App/AGENT_A6_STANDARDS_CHECK_REPORT.md)
+**Report:** [AGENT_A6_STANDARDS_CHECK_REPORT.md](file:///home/cjnf/Serene-Mind-App/archive/agent-reports/AGENT_A6_STANDARDS_CHECK_REPORT.md)
 **Score:** 9.2/10 | **Violations:** 3 minor | **Security:** 0 issues ✅
 
 ### Phase 2: Team B Verification ⏳
