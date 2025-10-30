@@ -29,6 +29,7 @@ Serene Mind is a **Progressive Web App (PWA)** designed to support users managin
 - **App-like experience:** Fullscreen mode, app icons, splash screens
 
 ### 🔐 Flexible Authentication
+- **Guest Mode:** Try the app before signing up - no account required
 - **Google OAuth:** One-click sign-in with your Google account
 - **Email Magic Link:** Passwordless authentication via email (no password to remember)
 - **Secure sessions:** JWT-based authentication with MongoDB session storage
@@ -53,6 +54,23 @@ Serene Mind is a **Progressive Web App (PWA)** designed to support users managin
 - **Mood correlation:** Connect emotions with daily activities
 - **Private & secure:** All data encrypted and user-isolated
 - **Rich text support:** Format your entries for better organization
+
+### 👋 Guest Mode - Try Before You Sign Up
+- **No account required:** Explore all features without creating an account
+- **Instant access:** Click "Try Demo" and start using the app immediately
+- **Realistic demo data:** Pre-populated tasks and journal entries to explore
+- **Full feature access:** Test tasks, journaling, calendar, affirmations, and rewards
+- **Easy upgrade:** Sign up anytime to save your progress
+- **Privacy-focused:** Guest sessions expire after 30 minutes, no data stored
+
+**Guest Limitations:**
+- Maximum 5 tasks
+- Maximum 3 journal entries
+- 30-minute session duration
+- No AI insights generation
+- Data not persisted after session expires
+
+**Perfect for:** New users wanting to explore features, demos, or quick task management without commitment.
 
 ### 🎯 Additional Features
 - **Daily affirmations:** Positive affirmations library for mental wellness
@@ -82,7 +100,15 @@ Serene Mind is a **Progressive Web App (PWA)** designed to support users managin
 
 ## 🚀 Quick Start
 
-### Prerequisites
+### Try Without Installing (Guest Mode)
+
+Visit the live app and click **"Try Demo"** to explore all features without creating an account:
+- ✅ No sign-up required
+- ✅ Instant access to all features
+- ✅ Try tasks, journaling, calendar, and more
+- ✅ 30-minute guest session
+
+### Prerequisites for Self-Hosting
 
 - Node.js 18+ and npm
 - MongoDB Atlas account (free tier)

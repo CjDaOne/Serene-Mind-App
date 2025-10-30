@@ -15,7 +15,8 @@
 - **Structure**: `src/app/` contains routes (dashboard, journal, tasks, calendar, affirmations, rewards)
 - **AI Layer**: Google Genkit + Gemini API in `src/ai/` for journaling insights
 - **Database**: MongoDB with user data isolation and indexes
-- **Auth**: NextAuth.js with Google OAuth + Email Magic Link
+- **Auth**: NextAuth.js with Google OAuth + Email Magic Link + Guest Mode
+- **Guest Mode**: Anonymous JWT sessions, client-side demo data, 30-minute sessions
 - **PWA**: Service worker, offline support, push notifications
 - **Deployment**: Vercel (via apphosting.yaml)
 
@@ -49,7 +50,48 @@ See `DEPLOYMENT.md` for comprehensive deployment guide including:
 - Vercel deployment with environment variables
 - Post-deployment verification checklist
 
+## Features
+
+### Core Features
+- **Task Management**: Create, edit, complete, and delete tasks with subtasks
+- **Journaling**: Private journal entries with mood tracking
+- **Calendar View**: Visual task planning and progress tracking
+- **Daily Affirmations**: Positive affirmations library
+- **Rewards System**: Achievement tracking and gamification
+- **AI Insights**: Google Gemini-powered journaling insights and task suggestions
+
+### Authentication Options
+- **Google OAuth**: One-click sign-in with Google account
+- **Email Magic Link**: Passwordless authentication via email
+- **Guest Mode**: Try the app without creating an account
+  - 30-minute anonymous sessions
+  - Client-side demo data (no database)
+  - Limited creation (5 tasks, 3 journals)
+  - Easy upgrade flow with optional data migration
+
+### Progressive Web App (PWA)
+- Installable on all devices (iOS, Android, desktop)
+- Offline-first architecture with service worker
+- Push notifications for reminders
+- App-like experience with fullscreen mode
+
 ## Agent System Status
+
+**Team Gamma - Agent 6: Guest Mode Documentation** ✅ COMPLETED (2025-10-29)
+
+Tasks completed:
+- ✅ Updated `README.md` with Guest Mode features section
+- ✅ Added "Try Before You Sign Up" to Quick Start guide
+- ✅ Updated `DEPLOYMENT.md` with guest session configuration
+- ✅ Created comprehensive `docs/GUEST_MODE.md` technical guide
+- ✅ Updated `AGENTS.md` with guest mode feature info
+- ✅ Created user-facing FAQ section in docs
+- ✅ Documented JWT session structure, demo data, and limitations
+- ✅ Detailed upgrade flow and security considerations
+
+Documentation completeness: 10/10
+
+---
 
 **Team Delta - Agent 12: Documentation** ✅ COMPLETED (2025-10-29)
 

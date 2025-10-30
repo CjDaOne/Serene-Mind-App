@@ -7,6 +7,8 @@ import { Progress } from '../ui/progress';
 import { Trophy } from 'lucide-react';
 import { getAchievementIcon } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
+import { useSession } from 'next-auth/react';
+import { getDemoAchievements } from '@/lib/demo-data';
 
 export default function RewardsClient() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -18,8 +20,20 @@ export default function RewardsClient() {
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { data: session } = useSession();
 
   const fetchAchievements = async () => {
+    if (session?.user?.isGuest) {
+      setAchievements(getDemoAchievements());
+      setStats({
+        tasksCompleted: 1,
+        journalEntries: 3,
+        totalPoints: 250,
+        streakDays: 2,
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const response = await fetch('/api/rewards');
@@ -36,7 +50,7 @@ export default function RewardsClient() {
 
   useEffect(() => {
     fetchAchievements();
-  }, []);
+  }, [session]);
 
   const totalAchievements = achievements.length;
   const unlockedCount = achievements.filter(a => a.unlocked).length;

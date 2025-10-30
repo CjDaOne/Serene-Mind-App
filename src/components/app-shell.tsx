@@ -12,14 +12,21 @@ import { BrainCircuit } from 'lucide-react';
 import { MainNav } from './main-nav';
 import Link from 'next/link';
 import { useSidebar } from './ui/sidebar';
+import { useSession } from 'next-auth/react';
+import { Badge } from './ui/badge';
 
 function MobileHeader() {
   const { open, setOpen } = useSidebar();
+  const { data: session } = useSession();
+  
   return (
     <header className="md:hidden flex items-center justify-between p-4 border-b">
       <Link href="/" className="flex items-center gap-2">
         <BrainCircuit className="w-6 h-6 text-primary" />
         <span className="font-headline font-bold text-primary">SereneMind</span>
+        {session?.user?.isGuest && (
+          <Badge variant="secondary" className="ml-2 text-xs">Demo</Badge>
+        )}
       </Link>
       <SidebarTrigger />
     </header>
@@ -27,6 +34,8 @@ function MobileHeader() {
 }
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  const { data: session } = useSession();
+  
   return (
     <SidebarProvider>
       <div className="bg-background min-h-screen">
@@ -35,9 +44,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center justify-between p-4">
               <Link href="/" className="flex items-center gap-2">
                  <BrainCircuit className="w-8 h-8 text-primary" />
-                 <h1 className="text-xl font-headline font-bold text-primary">
-                    SereneMind
-                 </h1>
+                 <div className="flex flex-col">
+                   <h1 className="text-xl font-headline font-bold text-primary">
+                      SereneMind
+                   </h1>
+                   {session?.user?.isGuest && (
+                     <Badge variant="secondary" className="mt-1 text-xs w-fit">Demo Mode</Badge>
+                   )}
+                 </div>
               </Link>
             </div>
           </SidebarHeader>

@@ -4,6 +4,33 @@ Complete step-by-step guide to deploy Serene Mind App to production with all fea
 
 ---
 
+## 👋 Guest Mode Configuration
+
+**Good news!** Guest mode requires **zero additional setup**. It works out of the box:
+
+- ✅ No database configuration needed
+- ✅ No authentication service required
+- ✅ No environment variables
+- ✅ Client-side session management
+- ✅ Automatic cleanup after 30 minutes
+
+**How it works:**
+- Guest sessions use anonymous JWT tokens (signed, secure)
+- Demo data loaded client-side (no database writes)
+- Session stored in browser localStorage
+- Expires automatically after 30 minutes
+- No PII collected or stored
+
+**Guest data handling:**
+- Guest-created tasks and journals stored in browser memory
+- Data cleared on session expiry or browser close
+- No persistence to MongoDB
+- Rate limiting applies same as authenticated users
+
+Simply deploy the app and guest mode is ready to use!
+
+---
+
 ## 📋 Prerequisites
 
 Before deploying, ensure you have:

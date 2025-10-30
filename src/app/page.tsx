@@ -5,11 +5,44 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useSession, signOut } from 'next-auth/react';
+import { useSession, signOut, signIn } from 'next-auth/react';
+import { useState } from 'react';
+import { Loader2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 export default function LandingPage() {
   const { data: session } = useSession();
   const router = useRouter();
+  const [isCreatingGuest, setIsCreatingGuest] = useState(false);
+  const { toast } = useToast();
+
+  const handleTryDemo = async () => {
+    setIsCreatingGuest(true);
+    try {
+      const result = await signIn('guest', { 
+        callbackUrl: '/dashboard',
+        redirect: false 
+      });
+      
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+      
+      toast({
+        title: 'Welcome!',
+        description: 'You\'re now in demo mode. Explore all features!',
+      });
+      router.push('/dashboard');
+    } catch (error) {
+      toast({
+        title: 'Error',
+        description: 'Failed to start demo. Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCreatingGuest(false);
+    }
+  };
 
   return (
     <div className="bg-gray-50 text-gray-800">
@@ -30,7 +63,13 @@ export default function LandingPage() {
           <Button onClick={() => signOut()}>Logout</Button>
           </div>
           ) : (
-          <Button onClick={() => router.push('/auth/signin')}>Login</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleTryDemo} disabled={isCreatingGuest}>
+              {isCreatingGuest ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+              Try Demo
+            </Button>
+            <Button onClick={() => router.push('/auth/signin')}>Login</Button>
+          </div>
           )}
         </div>
       </header>
@@ -46,18 +85,37 @@ export default function LandingPage() {
             <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
               Discover a task manager designed for <em>your</em> pace, fostering emotional well-being without judgment or rigid demands.
             </p>
-            <Button
-            size="lg"
-            className="mt-8 text-lg font-semibold hover:scale-105 transition-transform transform"
-            onClick={() => !session && router.push('/auth/signin')}
-              asChild={!!session}
-            >
+            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center items-center">
               {session ? (
-                <Link href="/dashboard">Go to Dashboard</Link>
+                <Button
+                  size="lg"
+                  className="text-lg font-semibold hover:scale-105 transition-transform transform"
+                  asChild
+                >
+                  <Link href="/dashboard">Go to Dashboard</Link>
+                </Button>
               ) : (
-                'Get Started for Free'
+                <>
+                  <Button
+                    size="lg"
+                    className="text-lg font-semibold hover:scale-105 transition-transform transform"
+                    onClick={() => router.push('/auth/signin')}
+                  >
+                    Get Started for Free
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg font-semibold hover:scale-105 transition-transform transform"
+                    onClick={handleTryDemo}
+                    disabled={isCreatingGuest}
+                  >
+                    {isCreatingGuest ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Try Demo First
+                  </Button>
+                </>
               )}
-            </Button>
+            </div>
             <div className="mt-12 md:mt-16 h-64 w-full max-w-4xl mx-auto bg-primary/5 rounded-lg shadow-lg flex items-center justify-center p-4">
                <Image src="https://placehold.co/800x400.png" alt="A serene, abstract image representing calm focus" className="rounded-lg object-cover w-full h-full" width={800} height={400} priority />
             </div>
@@ -183,19 +241,39 @@ export default function LandingPage() {
           <div className="container mx-auto px-6 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4 font-headline">Ready to Experience Gentle Wellness?</h2>
             <p className="text-lg md:text-xl mb-8 opacity-90">Start your journey towards a more balanced and fulfilling life.</p>
-            <Button
-            size="lg"
-            variant="secondary"
-            className="text-lg font-semibold hover:scale-105 transition-transform transform"
-              onClick={() => !session && router.push('/auth/signin')}
-              asChild={!!session}
-            >
+            <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               {session ? (
-              <Link href="/dashboard">Start Now!</Link>
+                <Button
+                  size="lg"
+                  variant="secondary"
+                  className="text-lg font-semibold hover:scale-105 transition-transform transform"
+                  asChild
+                >
+                  <Link href="/dashboard">Start Now!</Link>
+                </Button>
               ) : (
-              'Start Now!'
+                <>
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    className="text-lg font-semibold hover:scale-105 transition-transform transform"
+                    onClick={() => router.push('/auth/signin')}
+                  >
+                    Start Now!
+                  </Button>
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="text-lg font-semibold hover:scale-105 transition-transform transform bg-white/10 hover:bg-white/20"
+                    onClick={handleTryDemo}
+                    disabled={isCreatingGuest}
+                  >
+                    {isCreatingGuest ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : null}
+                    Try Demo
+                  </Button>
+                </>
               )}
-            </Button>
+            </div>
           </div>
         </section>
 
