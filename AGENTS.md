@@ -75,32 +75,9 @@ See `DEPLOYMENT.md` for comprehensive deployment guide including:
 - Push notifications for reminders
 - App-like experience with fullscreen mode
 
-## Agent System Status
+## Documentation
 
-**Team Gamma - Agent 6: Guest Mode Documentation** ✅ COMPLETED (2025-10-29)
-
-Tasks completed:
-- ✅ Updated `README.md` with Guest Mode features section
-- ✅ Added "Try Before You Sign Up" to Quick Start guide
-- ✅ Updated `DEPLOYMENT.md` with guest session configuration
-- ✅ Created comprehensive `docs/GUEST_MODE.md` technical guide
-- ✅ Updated `AGENTS.md` with guest mode feature info
-- ✅ Created user-facing FAQ section in docs
-- ✅ Documented JWT session structure, demo data, and limitations
-- ✅ Detailed upgrade flow and security considerations
-
-Documentation completeness: 10/10
-
----
-
-**Team Delta - Agent 12: Documentation** ✅ COMPLETED (2025-10-29)
-
-Tasks completed:
-- ✅ Created `.env.local.example` with all required environment variables
-- ✅ Updated `README.md` with PWA features, email auth, installation guide
-- ✅ Created `DEPLOYMENT.md` with step-by-step deployment guide
-- ✅ Updated `AGENTS.md` with completion status
-
-Documentation completeness: 10/10
-
-All deployment documentation is production-ready and comprehensive.
+For deployment guides and infrastructure setup, see:
+- `DEPLOYMENT.md` - Complete deployment instructions
+- `README.md` - Project overview and features
+- `docs/` - Additional documentation including testing plans and infrastructure validation
