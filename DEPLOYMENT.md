@@ -74,7 +74,7 @@ Before deploying, ensure you have accounts for:
 
 ### 1.4 Get Connection String
 
-1. Go to **Database** → **Connect** → **Connect your application**
+1. Go to **Database** → **Connect** → **Connour application**
 2. Driver: **Node.js**, Version: **5.5 or later**
 3. Copy the connection string:
    ```
