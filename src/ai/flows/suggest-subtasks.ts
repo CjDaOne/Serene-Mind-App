@@ -53,7 +53,9 @@ const suggestSubtasksFlow = ai.defineFlow(
   async input => {
     try {
       const {output} = await prompt(input);
-      return output!;
+      // Validate output against schema before returning
+      const validated = SuggestSubtasksOutputSchema.parse(output);
+      return validated;
     } catch (error) {
       // Log error without sensitive details
       const errorType = error instanceof Error ? 'Error' : 'Unknown';

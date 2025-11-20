@@ -54,7 +54,9 @@ const journalInsightsFlow = ai.defineFlow(
   async input => {
     try {
       const { output } = await prompt(input);
-      return output!;
+      // Validate output against schema before returning
+      const validated = JournalInsightsOutputSchema.parse(output);
+      return validated;
     } catch (error) {
       // Log error without sensitive details (don't expose full error object)
       const errorType = error instanceof Error ? 'Error' : 'Unknown';
