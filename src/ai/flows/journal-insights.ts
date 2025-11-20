@@ -8,8 +8,8 @@
  * - JournalInsightsOutput - The return type for the getJournalInsights function.
  */
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { ai } from '@/ai/genkit';
+import { z } from 'genkit';
 
 const JournalInsightsInputSchema = z.object({
   journalEntries: z
@@ -29,8 +29,8 @@ export async function getJournalInsights(input: JournalInsightsInput): Promise<J
 
 const prompt = ai.definePrompt({
   name: 'journalInsightsPrompt',
-  input: {schema: JournalInsightsInputSchema},
-  output: {schema: JournalInsightsOutputSchema},
+  input: { schema: JournalInsightsInputSchema },
+  output: { schema: JournalInsightsOutputSchema },
   prompt: `You are an AI assistant that provides insights based on journal entries.
 
   Analyze the following journal entries and provide insights into the user's mood, behavior, and any trends or patterns.
@@ -47,7 +47,14 @@ const journalInsightsFlow = ai.defineFlow(
     outputSchema: JournalInsightsOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const { output } = await prompt(input);
+      return output!;
+    } catch (error) {
+      console.error('Error generating journal insights:', error);
+      return {
+        insights: "I'm having trouble analyzing your journal right now. Please try again later.",
+      };
+    }
   }
 );
