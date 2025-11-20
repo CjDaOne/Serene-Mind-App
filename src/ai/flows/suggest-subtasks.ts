@@ -23,6 +23,11 @@ const SuggestSubtasksOutputSchema = z.object({
 
 export type SuggestSubtasksOutput = z.infer<typeof SuggestSubtasksOutputSchema>;
 
+/**
+ * Generates AI-powered subtask suggestions for a given task
+ * @param input - Object containing the task description
+ * @returns Array of suggested subtasks
+ */
 export async function suggestSubtasks(input: SuggestSubtasksInput): Promise<SuggestSubtasksOutput> {
   return suggestSubtasksFlow(input);
 }
@@ -46,7 +51,23 @@ const suggestSubtasksFlow = ai.defineFlow(
     outputSchema: SuggestSubtasksOutputSchema,
   },
   async input => {
-    const {output} = await prompt(input);
-    return output!;
+    try {
+      const {output} = await prompt(input);
+      return output!;
+    } catch (error) {
+      // Log error without sensitive details
+      const errorType = error instanceof Error ? 'Error' : 'Unknown';
+      console.error(`[suggest-subtasks] Failed to suggest subtasks (${errorType})`);
+      
+      // Return sensible default subtasks as fallback
+      return {
+        subtasks: [
+          'Review and understand the task requirements',
+          'Plan your approach and resources',
+          'Execute the task step by step',
+          'Review and validate the results',
+        ],
+      };
+    }
   }
 );

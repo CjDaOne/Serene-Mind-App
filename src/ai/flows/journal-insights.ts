@@ -23,6 +23,11 @@ const JournalInsightsOutputSchema = z.object({
 });
 export type JournalInsightsOutput = z.infer<typeof JournalInsightsOutputSchema>;
 
+/**
+ * Generates AI-powered insights from journal entries
+ * @param input - Object containing journal entries
+ * @returns Insights about mood, behavior, and patterns
+ */
 export async function getJournalInsights(input: JournalInsightsInput): Promise<JournalInsightsOutput> {
   return journalInsightsFlow(input);
 }
@@ -51,7 +56,10 @@ const journalInsightsFlow = ai.defineFlow(
       const { output } = await prompt(input);
       return output!;
     } catch (error) {
-      console.error('Error generating journal insights:', error);
+      // Log error without sensitive details (don't expose full error object)
+      const errorType = error instanceof Error ? 'Error' : 'Unknown';
+      console.error(`[journal-insights] Failed to generate insights (${errorType})`);
+      
       return {
         insights: "I'm having trouble analyzing your journal right now. Please try again later.",
       };
