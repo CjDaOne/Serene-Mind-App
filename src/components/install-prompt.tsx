@@ -19,19 +19,18 @@ export function InstallPrompt() {
 
   useEffect(() => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-    
-    setIsInstalled(isStandalone);
-    setIsIOS(isIOSDevice);
+    const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as Window & { MSStream?: unknown }).MSStream;
 
     const dismissed = localStorage.getItem('install-prompt-dismissed');
-    if (dismissed) {
-      setIsDismissed(true);
-    }
+
+    // Only set state on mount, not on every render
+    setIsInstalled(isStandalone);
+    setIsIOS(isIOSDevice);
+    setIsDismissed(!!dismissed);
 
     if (!isStandalone && !dismissed) {
       const timer = setTimeout(() => setShowPrompt(true), 3000);
-      
+
       const handleBeforeInstallPrompt = (e: Event) => {
         e.preventDefault();
         setDeferredPrompt(e as BeforeInstallPromptEvent);
@@ -44,7 +43,8 @@ export function InstallPrompt() {
         window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       };
     }
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Run only once on mount
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
@@ -78,7 +78,7 @@ export function InstallPrompt() {
                 <Download className="h-5 w-5 text-primary" />
               </div>
             </div>
-            
+
             <div className="flex-1 space-y-3">
               <div>
                 <h3 className="font-semibold text-foreground font-headline">

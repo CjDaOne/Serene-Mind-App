@@ -37,17 +37,17 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/tasks - GET', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       const response = await getTasks();
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
 
     it('should return array of tasks with authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-      
+
       const mockDb = {
         collection: jest.fn(() => ({
           find: jest.fn(() => ({
@@ -68,12 +68,12 @@ describe('API Endpoints Tests - Agent 6', () => {
         })),
       };
 
-      const { getDatabase } = require('@/lib/db-init');
+      const { getDatabase } = await import('@/lib/db-init');
       (getDatabase as jest.Mock).mockResolvedValue(mockDb);
-      
+
       const response = await getTasks();
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(Array.isArray(data)).toBe(true);
     });
@@ -82,7 +82,7 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/tasks - POST', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       const mockRequest = {
         json: async () => ({
           title: 'New Task',
@@ -91,34 +91,34 @@ describe('API Endpoints Tests - Agent 6', () => {
           priority: 'medium',
           subtasks: [],
         }),
-      } as any;
-      
+      } as NextRequest;
+
       const response = await createTask(mockRequest);
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
 
     it('should return 400 with invalid data', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-      
+
       const mockRequest = {
         json: async () => ({
           title: '',
         }),
-      } as any;
-      
+      } as NextRequest;
+
       const response = await createTask(mockRequest);
       const data = await response.json();
-      
+
       expect(response.status).toBe(400);
       expect(data.error).toBe('Invalid task data');
     });
 
     it('should create task with valid data', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-      
+
       const mockDb = {
         collection: jest.fn(() => ({
           insertOne: jest.fn(() => Promise.resolve({
@@ -127,9 +127,9 @@ describe('API Endpoints Tests - Agent 6', () => {
         })),
       };
 
-      const { getDatabase } = require('@/lib/db-init');
+      const { getDatabase } = await import('@/lib/db-init');
       (getDatabase as jest.Mock).mockResolvedValue(mockDb);
-      
+
       const mockRequest = {
         json: async () => ({
           title: 'New Task',
@@ -139,11 +139,11 @@ describe('API Endpoints Tests - Agent 6', () => {
           priority: 'medium',
           subtasks: [],
         }),
-      } as any;
-      
+      } as NextRequest;
+
       const response = await createTask(mockRequest);
       const data = await response.json();
-      
+
       expect(response.status).toBe(201);
       expect(data.title).toBe('New Task');
     });
@@ -152,16 +152,16 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/tasks/[id] - PUT', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       const mockRequest = {
         json: async () => ({ completed: true }),
-      } as any;
-      
+      } as NextRequest;
+
       const mockParams = Promise.resolve({ id: 'task-id' });
-      
+
       const response = await updateTask(mockRequest, { params: mockParams });
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
@@ -170,13 +170,13 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/tasks/[id] - DELETE', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
-      const mockRequest = {} as any;
+
+      const mockRequest = {} as NextRequest;
       const mockParams = Promise.resolve({ id: 'task-id' });
-      
+
       const response = await deleteTask(mockRequest, { params: mockParams });
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
@@ -185,10 +185,10 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/journal - GET', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       const response = await getJournal();
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
@@ -197,16 +197,16 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/journal - POST', () => {
     it('should return 400 with invalid data', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(mockSession);
-      
+
       const mockRequest = {
         json: async () => ({
           mood: 'invalid-mood',
         }),
-      } as any;
-      
+      } as NextRequest;
+
       const response = await createJournal(mockRequest);
       const data = await response.json();
-      
+
       expect(response.status).toBe(400);
       expect(data.error).toBe('Invalid journal entry data');
     });
@@ -215,10 +215,10 @@ describe('API Endpoints Tests - Agent 6', () => {
   describe('/api/rewards - GET', () => {
     it('should return 401 without authentication', async () => {
       (getServerSession as jest.Mock).mockResolvedValue(null);
-      
+
       const response = await getRewards();
       const data = await response.json();
-      
+
       expect(response.status).toBe(401);
       expect(data.error).toBe('Unauthorized');
     });
@@ -228,7 +228,7 @@ describe('API Endpoints Tests - Agent 6', () => {
     it('should return a random affirmation', async () => {
       const response = await getAffirmations();
       const data = await response.json();
-      
+
       expect(response.status).toBe(200);
       expect(data).toHaveProperty('affirmation');
       expect(data).toHaveProperty('index');
@@ -239,13 +239,13 @@ describe('API Endpoints Tests - Agent 6', () => {
 
     it('should return different affirmations on multiple calls', async () => {
       const affirmations = new Set();
-      
+
       for (let i = 0; i < 10; i++) {
         const response = await getAffirmations();
         const data = await response.json();
         affirmations.add(data.affirmation);
       }
-      
+
       expect(affirmations.size).toBeGreaterThan(1);
     });
   });

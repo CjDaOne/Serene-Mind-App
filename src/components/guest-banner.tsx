@@ -16,9 +16,9 @@ export function GuestBanner() {
       <div className="flex items-start gap-3">
         <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
-          <h3 className="font-semibold text-amber-900">You're in Demo Mode</h3>
+          <h3 className="font-semibold text-amber-900">You&apos;re in Demo Mode</h3>
           <p className="text-sm text-amber-800 mt-1">
-            You're exploring with demo data. Create an account to save your progress and unlock all features!
+            You&apos;re exploring with demo data. Create an account to save your progress and unlock all features!
           </p>
           <div className="mt-3 flex gap-2">
             <Button

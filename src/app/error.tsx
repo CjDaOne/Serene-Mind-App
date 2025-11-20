@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -53,7 +54,7 @@ export default function Error({
             Try Again
           </Button>
           <Button asChild variant="outline" className="w-full">
-            <a href="/">Go Home</a>
+            <Link href="/">Go Home</Link>
           </Button>
         </CardFooter>
       </Card>

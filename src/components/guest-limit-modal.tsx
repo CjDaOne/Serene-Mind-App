@@ -43,10 +43,10 @@ export function GuestLimitModal({
             <DialogTitle>Demo Limit Reached</DialogTitle>
           </div>
           <DialogDescription className="pt-2">
-            You've reached the demo limit of {maxCount} {limitType}. Create a free account to unlock unlimited {limitType} and save your progress!
+            You&apos;ve reached the demo limit of {maxCount} {limitType}. Create a free account to unlock unlimited {limitType} and save your progress!
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 my-2">
           <p className="text-sm text-amber-900">
             <strong>Demo Limitations:</strong>
