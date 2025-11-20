@@ -17,7 +17,7 @@ declare module 'next-auth' {
       isGuest?: boolean;
     };
   }
-  
+
   interface User {
     id: string;
     name?: string | null;
@@ -59,10 +59,24 @@ export const authOptions: AuthOptions = {
     }),
   ],
   callbacks: {
-    jwt: async ({ token, user }) => {
+    jwt: async ({ token, user, account }) => {
       if (user) {
         token.isGuest = user.isGuest || false;
       }
+
+      // Enforce 30-minute session for guests
+      if (token.isGuest) {
+        const now = Math.floor(Date.now() / 1000);
+        const tokenCreatedAt = (token.iat as number) || now;
+        const guestSessionDuration = 30 * 60; // 30 minutes in seconds
+
+        if (now - tokenCreatedAt > guestSessionDuration) {
+          // Return an empty object or throw an error to invalidate the session
+          // NextAuth will interpret this as an invalid token
+          throw new Error('Guest session expired');
+        }
+      }
+
       return token;
     },
     session: async ({ session, token }: { session: Session; token: JWT }) => {
@@ -75,7 +89,7 @@ export const authOptions: AuthOptions = {
   },
   session: {
     strategy: 'jwt',
-    maxAge: 30 * 60, // 30 minutes for guest sessions (overridden for regular users)
+    maxAge: 30 * 24 * 60 * 60, // 30 days for regular users
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
