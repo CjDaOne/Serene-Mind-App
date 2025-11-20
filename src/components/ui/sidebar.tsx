@@ -393,9 +393,9 @@ const SidebarMenuButton = React.forwardRef<
       <>
         {React.Children.map(children, child =>
           React.isValidElement(child) && child.type === 'span'
-            ? React.cloneElement(child as React.ReactElement, {
-                className: cn((child.props as any).className, "transition-opacity", state === 'collapsed' && 'opacity-0 w-0'),
-              })
+            ? React.cloneElement(child as React.ReactElement<{ className?: string }>, {
+              className: cn(child.props.className, "transition-opacity", state === 'collapsed' && 'opacity-0 w-0'),
+            })
             : child
         )}
       </>

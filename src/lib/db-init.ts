@@ -41,7 +41,7 @@ async function createIndexes(db: Db): Promise<void> {
     console.log('✓ Created index: rewards.userId');
 
   } catch (error) {
-    if ((error as any).code === 85) {
+    if ((error as { code?: number }).code === 85) {
       console.log('Indexes already exist, skipping...');
     } else {
       console.error('Index creation error:', error);

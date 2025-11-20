@@ -126,13 +126,13 @@ export default function LandingPage() {
         <section className="py-20">
           <div className="container mx-auto px-6">
             <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 font-headline">The "Why Us"</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 font-headline">The &quot;Why Us&quot;</h2>
             </div>
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <div>
                 <h3 className="text-2xl font-semibold text-gray-800 mb-4 font-headline">The Problem</h3>
                 <p className="text-gray-600 leading-relaxed">
-                  Are you tired of productivity apps that feel like another source of stress? Do rigid checklists lead to task paralysis, overwhelming you with guilt when you miss a streak? Many tools push a 'hustle culture' that ignores the very real challenges of managing emotions, neurodivergence, or simply having an off day. It's hard to process feelings when you're constantly fighting against self-criticism and the pressure to 'do more, faster.'
+                  Are you tired of productivity apps that feel like another source of stress? Do rigid checklists lead to task paralysis, overwhelming you with guilt when you miss a streak? Many tools push a &apos;hustle culture&apos; that ignores the very real challenges of managing emotions, neurodivergence, or simply having an off day. It&apos;s hard to process feelings when you&apos;re constantly fighting against self-criticism and the pressure to &apos;do more, faster.&apos;
                 </p>
               </div>
               <div className="bg-white p-8 rounded-lg shadow-lg">
@@ -158,7 +158,7 @@ export default function LandingPage() {
                 <div className="text-4xl mb-4">✓</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Achieve Your Goals, Your Way.</h3>
                 <p className="text-muted-foreground">
-                  Easily create tasks and break them down into manageable sub-tasks. Prioritize by importance and urgency, but here's the difference: there are no punitive streaks, 'failed' statuses, or guilt-inducing metrics.
+                  Easily create tasks and break them down into manageable sub-tasks. Prioritize by importance and urgency, but here&apos;s the difference: there are no punitive streaks, &apos;failed&apos; statuses, or guilt-inducing metrics.
                 </p>
               </div>
               {/* Feature 2 */}
@@ -166,7 +166,7 @@ export default function LandingPage() {
                 <div className="text-4xl mb-4 font-bold">B</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Understand Your Inner World.</h3>
                 <p className="text-muted-foreground">
-                  Take a simple mood check-in using intuitive emojis to quickly log how you're feeling. Our free-form journaling space is a safe, non-clinical environment for unburdened self-reflection.
+                  Take a simple mood check-in using intuitive emojis to quickly log how you&apos;re feeling. Our free-form journaling space is a safe, non-clinical environment for unburdened self-reflection.
                 </p>
               </div>
               {/* Feature 3 */}
@@ -179,7 +179,7 @@ export default function LandingPage() {
               </div>
               {/* Feature 4 */}
               <div className="bg-background p-8 rounded-lg text-center transform hover:-translate-y-2 transition-transform">
-                <div className="text-4xl mb-4 font-bold">"</div>
+                <div className="text-4xl mb-4 font-bold">&quot;</div>
                 <h3 className="text-xl font-semibold text-gray-800 mb-2 font-headline">Shift Your Self-Talk.</h3>
                 <p className="text-muted-foreground">
                   Empower your mind daily with our curated library of positive affirmations. Designed to counter negative self-talk, promote self-belief, and offer gentle inspiration for your day.
@@ -221,15 +221,15 @@ export default function LandingPage() {
             </div>
             <div className="grid md:grid-cols-3 gap-8">
               <div className="bg-background p-8 rounded-lg shadow-sm">
-                <p className="text-muted-foreground italic mb-4">"Finally, a productivity app that doesn't make me feel guilty when my brain doesn't cooperate! It truly helps me manage my tasks and my mood without any judgment."</p>
+                <p className="text-muted-foreground italic mb-4">&quot;Finally, a productivity app that doesn&apos;t make me feel guilty when my brain doesn&apos;t cooperate! It truly helps me manage my tasks and my mood without any judgment.&quot;</p>
                 <p className="font-semibold text-foreground">- A relieved user</p>
               </div>
               <div className="bg-background p-8 rounded-lg shadow-sm">
-                <p className="text-muted-foreground italic mb-4">"The most supportive app I've ever used for my mental well-being. It's gentle, effective, and actually helps me understand myself better."</p>
+                <p className="text-muted-foreground italic mb-4">&quot;The most supportive app I&apos;ve ever used for my mental well-being. It&apos;s gentle, effective, and actually helps me understand myself better.&quot;</p>
                 <p className="font-semibold text-foreground">- Someone finding peace</p>
               </div>
               <div className="bg-background p-8 rounded-lg shadow-sm">
-                <p className="text-muted-foreground italic mb-4">"This app understands that progress isn't always linear. It feels like a genuine partner in my wellness journey, not just another demanding tool."</p>
+                <p className="text-muted-foreground italic mb-4">&quot;This app understands that progress isn&apos;t always linear. It feels like a genuine partner in my wellness journey, not just another demanding tool.&quot;</p>
                 <p className="font-semibold text-foreground">- A user regaining control</p>
               </div>
             </div>

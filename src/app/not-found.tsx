@@ -15,12 +15,12 @@ export default function NotFound() {
             <span className="text-primary">404</span> - Page Not Found
           </CardTitle>
           <CardDescription className="text-base mt-2">
-            The page you're looking for doesn't exist or has been moved.
+            The page you&apos;re looking for doesn&apos;t exist or has been moved.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            Don't worry, even the calmest minds sometimes wander off the path. Let's get you back to your wellness journey.
+            Don&apos;t worry, even the calmest minds sometimes wander off the path. Let&apos;s get you back to your wellness journey.
           </p>
         </CardContent>
         <CardFooter className="flex flex-col gap-3">

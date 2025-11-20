@@ -1,26 +1,24 @@
-const React = require('react');
+import React from 'react';
 
 const MockIcon = (props) => React.createElement('svg', props, 'Icon');
 
-module.exports = {
-  Plus: MockIcon,
-  Trash2: MockIcon,
-  Wand2: MockIcon,
-  Loader2: MockIcon,
-  Calendar: MockIcon,
-  Star: MockIcon,
-  Frown: MockIcon,
-  Angry: MockIcon,
-  Meh: MockIcon,
-  Smile: MockIcon,
-  Award: MockIcon,
-  BookOpen: MockIcon,
-  CalendarCheck2: MockIcon,
-  BrainCircuit: MockIcon,
-  RefreshCw: MockIcon,
-  Heart: MockIcon,
-  Trophy: MockIcon,
-  Check: MockIcon,
-  ChevronDown: MockIcon,
-  // Add more icons as needed
-};
+export const Plus = MockIcon;
+export const Trash2 = MockIcon;
+export const Wand2 = MockIcon;
+export const Loader2 = MockIcon;
+export const Calendar = MockIcon;
+export const Star = MockIcon;
+export const Frown = MockIcon;
+export const Angry = MockIcon;
+export const Meh = MockIcon;
+export const Smile = MockIcon;
+export const Award = MockIcon;
+export const BookOpen = MockIcon;
+export const CalendarCheck2 = MockIcon;
+export const BrainCircuit = MockIcon;
+export const RefreshCw = MockIcon;
+export const Heart = MockIcon;
+export const Trophy = MockIcon;
+export const Check = MockIcon;
+export const ChevronDown = MockIcon;
+// Add more icons as needed

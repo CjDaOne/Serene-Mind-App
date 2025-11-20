@@ -8,20 +8,20 @@ export type ApiErrorResponse = {
   error: {
     code: string;
     message: string;
-    details?: any;
+    details?: unknown;
   };
 };
 
 type ApiHandler = (
   request: NextRequest,
-  context?: any
+  context?: unknown
 ) => Promise<NextResponse>;
 
 export function withApiHandler(
   handler: ApiHandler,
   options: { requireAuth?: boolean } = { requireAuth: true }
 ): ApiHandler {
-  return async (request: NextRequest, context?: any) => {
+  return async (request: NextRequest, context?: unknown) => {
     const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
     const startTime = Date.now();
 
@@ -45,14 +45,14 @@ export function withApiHandler(
       }
 
       const response = await handler(request, context);
-      
+
       const duration = Date.now() - startTime;
       console.log(`[${requestId}] Response: ${response.status} (${duration}ms)`);
-      
+
       return response;
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       if (error instanceof ZodError) {
         console.error(`[${requestId}] Validation error (${duration}ms):`, error.issues);
         return NextResponse.json<ApiErrorResponse>(
@@ -89,7 +89,7 @@ export function errorResponse(
   code: string,
   message: string,
   status: number,
-  details?: any
+  details?: unknown
 ): NextResponse {
   return NextResponse.json<ApiErrorResponse>(
     {
