@@ -2,110 +2,139 @@
 
 import { useState, useEffect } from 'react';
 import type { Achievement } from '@/lib/types';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '../ui/progress';
-import { Trophy } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle } from 'lucide-react';
 import { getAchievementIcon } from '@/components/icons';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from 'next-auth/react';
 import { getDemoAchievements } from '@/lib/demo-data';
 
+interface Stats {
+  tasksCompleted: number;
+  journalEntries: number;
+  actionsCount: number;
+  // streakDays intentionally absent
+}
+
 export default function RewardsClient() {
   const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [stats, setStats] = useState({
+  const [stats, setStats] = useState<Stats>({
     tasksCompleted: 0,
     journalEntries: 0,
-    totalPoints: 0,
-    streakDays: 0,
+    actionsCount: 0,
   });
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const { data: session } = useSession();
 
-  const fetchAchievements = async () => {
-    if (session?.user?.isGuest) {
-      setAchievements(getDemoAchievements());
-      setStats({
-        tasksCompleted: 1,
-        journalEntries: 3,
-        totalPoints: 250,
-        streakDays: 2,
-      });
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const response = await fetch('/api/rewards');
-      if (!response.ok) throw new Error('Failed to fetch achievements');
-      const data = await response.json();
-      setAchievements(data.achievements);
-      setStats(data.stats);
-    } catch (error) {
-      toast({ title: 'Error', description: 'Failed to load rewards', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const fetchAchievements = async () => {
+      if (session?.user?.isGuest) {
+        setAchievements(getDemoAchievements());
+        setStats({ tasksCompleted: 1, journalEntries: 3, actionsCount: 4 });
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const response = await fetch('/api/rewards');
+        if (!response.ok) throw new Error('Failed to fetch');
+        const data = await response.json();
+        setAchievements(data.achievements);
+        setStats(data.stats);
+      } catch {
+        toast({ title: 'Error', description: 'Failed to load', variant: 'destructive' });
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchAchievements();
   }, [session]);
 
-  const totalAchievements = achievements.length;
-  const unlockedCount = achievements.filter(a => a.unlocked).length;
-  const progressPercentage = totalAchievements > 0 ? (unlockedCount / totalAchievements) * 100 : 0;
+  const unlocked = achievements.filter(a => a.unlocked);
+  const locked = achievements.filter(a => !a.unlocked);
 
   return (
     <div className="flex flex-col gap-8">
       <div>
-        <h1 className="text-3xl font-bold font-headline">Rewards & Progress</h1>
-        <p className="text-muted-foreground">Celebrate your journey to wellness.</p>
+        <h1 className="text-3xl font-bold font-headline">Progress</h1>
+        <p className="text-muted-foreground">Things you&apos;ve done, recorded without judgment.</p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Your Progress</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-between items-center">
-          <h3 className="text-lg font-semibold">Wellness Points</h3>
-          <div className="flex items-center gap-2 text-2xl font-bold text-primary">
-          <Trophy className="w-6 h-6" />
-          <span>{stats.totalPoints}</span>
-          </div>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm text-muted-foreground">
-                <p>Achievements Unlocked</p>
-                <p>{unlockedCount} of {totalAchievements}</p>
-            </div>
-            <Progress value={progressPercentage} />
-          </div>
-        </CardContent>
-      </Card>
-      
-      <div className="space-y-4">
-          <h2 className="text-2xl font-bold font-headline">Achievements</h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {achievements.map(ach => {
-                const Icon = getAchievementIcon(ach.icon);
-                return (
-                    <Card key={ach.id} className={`transition-all ${ach.unlocked ? 'opacity-100' : 'opacity-50'}`}>
-                        <CardHeader className="flex flex-row items-center gap-4">
-                            <div className={`p-3 rounded-lg ${ach.unlocked ? 'bg-primary/10 text-primary' : 'bg-muted'}`}>
-                                <Icon className="w-8 h-8"/>
-                            </div>
-                            <div>
-                                <CardTitle>{ach.title}</CardTitle>
-                                <CardDescription>{ach.description}</CardDescription>
-                            </div>
-                        </CardHeader>
-                    </Card>
-                )
+      {/* Actions count — neutral framing, no trophy/points/leaderboard */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold text-primary">{stats.actionsCount}</p>
+            <p className="text-sm text-muted-foreground mt-1">Total actions</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold">{stats.tasksCompleted}</p>
+            <p className="text-sm text-muted-foreground mt-1">Tasks completed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 text-center">
+            <p className="text-3xl font-bold">{stats.journalEntries}</p>
+            <p className="text-sm text-muted-foreground mt-1">Journal entries</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Unlocked first, then locked — no progress bar pushing completion anxiety */}
+      {unlocked.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-lg font-semibold">Things that happened</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {unlocked.map(ach => {
+              const Icon = getAchievementIcon(ach.icon);
+              return (
+                <Card key={ach.id} className="border-primary/20 bg-primary/5">
+                  <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                    <div className="p-2 rounded-lg bg-primary/10 text-primary">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                    <div className="flex-1">
+                      <CardTitle className="text-base flex items-center gap-2">
+                        {ach.title}
+                        <CheckCircle className="w-4 h-4 text-primary" />
+                      </CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">{ach.description}</p>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
             })}
           </div>
-      </div>
+        </div>
+      )}
+
+      {locked.length > 0 && (
+        <div className="space-y-3">
+          <h2 className="text-sm font-medium text-muted-foreground">Others that may happen</h2>
+          <div className="grid gap-4 md:grid-cols-2">
+            {locked.map(ach => {
+              const Icon = getAchievementIcon(ach.icon);
+              return (
+                <Card key={ach.id} className="opacity-40">
+                  <CardHeader className="flex flex-row items-center gap-4 pb-2">
+                    <div className="p-2 rounded-lg bg-muted">
+                      <Icon className="w-6 h-6 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{ach.title}</CardTitle>
+                      <p className="text-xs text-muted-foreground mt-0.5">{ach.description}</p>
+                    </div>
+                  </CardHeader>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

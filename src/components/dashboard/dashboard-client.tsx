@@ -1,211 +1,239 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import type { Task, JournalEntry, Mood, Achievement } from '@/lib/types';
+import React, { useState } from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { getAchievementIcon } from '@/components/icons';
 import { NotificationManager } from '@/components/notification-manager';
-import { fromTaskDTO } from '@/lib/domain/task';
-import { fromJournalEntryDTO } from '@/lib/domain/journal';
 import { useToast } from '@/hooks/use-toast';
 import { useSession } from 'next-auth/react';
-import { getDemoTasks, getDemoJournalEntries, getDemoAchievements } from '@/lib/demo-data';
+import { useSystemView } from '@/hooks/use-system-view';
 import { GuestBanner } from '@/components/guest-banner';
+import type { UserSystemMode } from '@/core/index';
+import type { Task } from '@/lib/domain/task';
 
-const moodVerbiage: Record<Mood, string> = {
-  Happy: 'feeling happy',
-  Calm: 'feeling calm',
-  Sad: 'feeling sad',
-  Anxious: 'feeling anxious',
-  Excited: 'feeling excited',
+const MODE_CONFIG: Record<UserSystemMode, { label: string; description: string }> = {
+  SURVIVE:    { label: 'Getting through it',  description: 'One thing at a time. The rest can wait.' },
+  STABILIZE:  { label: 'Building back',        description: 'Returning to routine, step by step.' },
+  PRODUCTIVE: { label: 'Full capacity',         description: 'Ready to take on more.' },
 };
 
+function ModeSelector({
+  current,
+  onChange,
+  disabled,
+}: {
+  current: UserSystemMode;
+  onChange: (mode: UserSystemMode) => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="space-y-2">
+      <p className="text-sm text-muted-foreground">How are you today?</p>
+      <div className="flex gap-2 flex-wrap">
+        {(Object.keys(MODE_CONFIG) as UserSystemMode[]).map(mode => (
+          <button
+            key={mode}
+            onClick={() => !disabled && onChange(mode)}
+            disabled={disabled}
+            className={`px-3 py-1.5 rounded-md text-sm transition-colors ${
+              current === mode
+                ? 'bg-primary text-primary-foreground'
+                : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            }`}
+          >
+            {MODE_CONFIG[mode].label}
+          </button>
+        ))}
+      </div>
+      {current && (
+        <p className="text-xs text-muted-foreground">{MODE_CONFIG[current].description}</p>
+      )}
+    </div>
+  );
+}
+
+function FocusTaskItem({ task }: { task: Task }) {
+  return (
+    <div className="p-3 rounded-lg border bg-background">
+      <p className="font-medium text-sm">{task.title}</p>
+      {task.description && (
+        <p className="text-xs text-muted-foreground mt-1 line-clamp-1">{task.description}</p>
+      )}
+    </div>
+  );
+}
+
+// Re-entry layout: structurally minimal — one task, one prompt, no backlog
+function ReEntryView({
+  daysSinceLastActive,
+  suggestedTask,
+  onReady,
+}: {
+  daysSinceLastActive: number;
+  suggestedTask: Task | undefined;
+  onReady: () => void;
+}) {
+  const days = Math.round(daysSinceLastActive);
+
+  return (
+    <div className="flex flex-col gap-6 max-w-xl mx-auto">
+      <div className="text-center pt-4">
+        <h1 className="text-2xl font-semibold">Welcome back.</h1>
+        <p className="text-muted-foreground mt-2">
+          {days > 0
+            ? `You've been away for ${days} day${days !== 1 ? 's' : ''}. No pressure.`
+            : 'Starting fresh today.'}
+        </p>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">One thing to consider</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {suggestedTask ? (
+            <FocusTaskItem task={suggestedTask} />
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No tasks yet.{' '}
+              <Link href="/tasks" className="underline">
+                Add one when you&apos;re ready.
+              </Link>
+            </p>
+          )}
+        </CardContent>
+        <CardFooter className="flex gap-3">
+          <Button onClick={onReady} variant="default">
+            I&apos;m ready to see more
+          </Button>
+          <Button asChild variant="ghost">
+            <Link href="/journal">Just check in</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <p className="text-center text-xs text-muted-foreground">
+        Your other tasks are still here. No backlog pressure.
+      </p>
+    </div>
+  );
+}
+
+// Normal mode layout: mode selector + filtered focus tasks + mood + reflection
+function NormalView({
+  mode,
+  visibleTasks,
+  onModeChange,
+  isGuest,
+}: {
+  mode: UserSystemMode;
+  visibleTasks: Task[];
+  onModeChange: (mode: UserSystemMode) => void;
+  isGuest: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-6">
+      <Card>
+        <CardContent className="pt-6">
+          <ModeSelector current={mode} onChange={onModeChange} disabled={isGuest} />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Focus tasks</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          {visibleTasks.length > 0 ? (
+            visibleTasks.map(task => <FocusTaskItem key={task.id} task={task} />)
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              No tasks match your current capacity. {' '}
+              <Link href="/tasks" className="underline">
+                Adjust or add tasks.
+              </Link>
+            </p>
+          )}
+        </CardContent>
+        <CardFooter>
+          <Button asChild variant="link" className="p-0 h-auto">
+            <Link href="/tasks">Manage all tasks</Link>
+          </Button>
+        </CardFooter>
+      </Card>
+
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card>
+          <CardHeader>
+            <CardTitle>Check in</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-sm text-muted-foreground">
+              A brief note about how you&apos;re feeling can help you see patterns over time.
+            </p>
+          </CardContent>
+          <CardFooter>
+            <Button asChild variant="default">
+              <Link href="/journal">Open journal</Link>
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <div>
+          <NotificationManager />
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function DashboardClient() {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [journalEntries, setJournalEntries] = useState<JournalEntry[]>([]);
-  const [achievements, setAchievements] = useState<Achievement[]>([]);
-  const [loading, setLoading] = useState(false);
-  const { toast } = useToast();
   const { data: session } = useSession();
+  const { systemState, visibleTasks, loading, setMode } = useSystemView();
+  const [reEntryAcknowledged, setReEntryAcknowledged] = useState(false);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (session?.user?.isGuest) {
-        setTasks(getDemoTasks());
-        setJournalEntries(getDemoJournalEntries());
-        setAchievements(getDemoAchievements());
-        return;
-      }
+  const handleModeChange = async (mode: UserSystemMode) => {
+    try {
+      await setMode(mode);
+    } catch {
+      toast({ title: 'Could not save mode', variant: 'destructive' });
+    }
+  };
 
-      setLoading(true);
-      try {
-        const [tasksRes, journalRes, rewardsRes] = await Promise.all([
-          fetch('/api/tasks'),
-          fetch('/api/journal'),
-          fetch('/api/rewards'),
-        ]);
+  if (loading || !systemState) {
+    return (
+      <div className="flex items-center justify-center min-h-[40vh]">
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      </div>
+    );
+  }
 
-        if (tasksRes.ok) {
-          const taskDTOs = await tasksRes.json();
-          setTasks(taskDTOs.map(fromTaskDTO));
-        }
-
-        if (journalRes.ok) {
-          const entryDTOs = await journalRes.json();
-          setJournalEntries(entryDTOs.map(fromJournalEntryDTO));
-        }
-
-        if (rewardsRes.ok) {
-          const data = await rewardsRes.json();
-          setAchievements(data.achievements);
-        }
-      } catch (error) {
-        toast({ title: 'Error', description: 'Failed to load dashboard data', variant: 'destructive' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [session]);
-
-  const todaysTasks = tasks.filter(task => {
-    const today = new Date();
-    return task.dueDate.getDate() === today.getDate() &&
-      task.dueDate.getMonth() === today.getMonth() &&
-      task.dueDate.getFullYear() === today.getFullYear() &&
-      !task.completed
-  });
-
-  const latestJournal = journalEntries.length > 0 ? journalEntries[0] : null;
+  const showReEntry = systemState.reEntryMode && !reEntryAcknowledged;
+  const daysSinceLastActive =
+    systemState.inactiveDurationMs / (1000 * 60 * 60 * 24);
 
   return (
     <div className="flex flex-col gap-8">
       {session?.user?.isGuest && <GuestBanner />}
 
-      <div className="text-center bg-gradient-to-r from-primary to-primary/70 text-primary-foreground p-8 rounded-lg shadow-lg">
-        <h1 className="text-4xl font-bold font-headline">Hello, Wellness Seeker!</h1>
-        <p className="text-lg mt-2 text-primary-foreground/80">&quot;Every day is a new opportunity to grow.&quot;</p>
-      </div>
-
-      <div className="grid gap-6 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Today&apos;s Focus Tasks</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {todaysTasks.length > 0 ? (
-              todaysTasks.slice(0, 3).map(task => (
-                <div key={task.id} className="mb-2">
-                  <p className="font-medium">{task.title}</p>
-                </div>
-              ))
-            ) : (
-              <p className="text-muted-foreground">No tasks scheduled for today. Time to relax or add some!</p>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="link" className="p-0 h-auto">
-              <Link href="/tasks">View All Tasks</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Mood Today</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {latestJournal ? (
-              <div>
-                <p className="text-muted-foreground">You last reported {moodVerbiage[latestJournal.mood]}.</p>
-                <p className="font-semibold mt-2">Recent Moods:</p>
-                <div className="flex gap-2 mt-1">
-                  {journalEntries.slice(0, 5).map(entry => (
-                    <span key={entry.id} className="text-xs p-1 px-2 bg-secondary rounded-full">{entry.mood}</span>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <p className="text-muted-foreground">No mood logged today.</p>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="link" className="p-0 h-auto">
-              <Link href="/journal">Log Mood / View Journal</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Recent Reflections</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {journalEntries.length > 0 ? (
-              <p className="text-muted-foreground italic">&quot;{journalEntries[0].content}&quot;</p>
-            ) : (
-              <p className="text-muted-foreground">No journal entries yet. Start reflecting today!</p>
-            )}
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="default" className="bg-accent hover:bg-accent/90">
-              <Link href="/journal">Add New Entry</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="md:col-span-2">
-          <CardHeader>
-            <CardTitle>Your Achievements</CardTitle>
-            <CardDescription>Celebrate your progress!</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {achievements.filter(a => a.unlocked).map(achievement => {
-                const Icon = getAchievementIcon(achievement.icon);
-                return (
-                  <div key={achievement.id} className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg">
-                    <Icon className="w-8 h-8 text-primary" />
-                    <div>
-                      <p className="font-medium text-sm">{achievement.title}</p>
-                      <p className="text-xs text-muted-foreground">{achievement.description}</p>
-                    </div>
-                  </div>
-                );
-              })}
-              {achievements.filter(a => !a.unlocked).length > 0 && (
-                <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg opacity-50">
-                  {(() => {
-                    const nextAchievement = achievements.find(a => !a.unlocked);
-                    if (nextAchievement) {
-                      const Icon = getAchievementIcon(nextAchievement.icon);
-                      return <Icon className="w-8 h-8 text-muted-foreground" />;
-                    }
-                    return null;
-                  })()}
-                  <div>
-                    <p className="font-medium text-sm">Next Achievement</p>
-                    <p className="text-xs text-muted-foreground">Keep going!</p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button asChild variant="link" className="p-0 h-auto">
-              <Link href="/rewards">View All Achievements</Link>
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <div className="md:col-span-2">
-          <NotificationManager />
-        </div>
-      </div>
+      {showReEntry ? (
+        // Structurally different layout — reduced, no backlog, single task
+        <ReEntryView
+          daysSinceLastActive={daysSinceLastActive}
+          suggestedTask={visibleTasks[0]}
+          onReady={() => setReEntryAcknowledged(true)}
+        />
+      ) : (
+        // Normal mode layout — includes mode selector and filtered task list
+        <NormalView
+          mode={systemState.mode}
+          visibleTasks={visibleTasks}
+          onModeChange={handleModeChange}
+          isGuest={session?.user?.isGuest ?? false}
+        />
+      )}
     </div>
   );
 }

@@ -1,21 +1,18 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import clientPromise from '@/lib/mongodb';
-import { CreateJournalEntrySchema, JournalEntryDTO, toJournalEntryDTO } from '@/lib/domain/journal';
+import { NextRequest } from 'next/server';
+import { getDatabase } from '@/lib/db-init';
+import { CreateJournalEntrySchema, JournalEntryDTO } from '@/lib/domain/journal';
 import { withRateLimit } from '@/middleware/rate-limit-middleware';
 import { rateLimitConfig } from '@/lib/rate-limit';
 import { withApiHandler, successResponse } from '@/lib/api-handler';
+import type { Session } from 'next-auth';
 
 export async function GET(request: NextRequest) {
-  return withRateLimit(request, async () => {
-    return withApiHandler(async (req) => {
-      const session = await getServerSession(authOptions);
-      const client = await clientPromise;
-      const db = client.db('serene-mind');
+  return withRateLimit(request, async (req, session) => {
+    return withApiHandler(async () => {
+      const db = await getDatabase();
 
       const entries = await db.collection('journal')
-        .find({ userId: session!.user!.id })
+        .find({ userId: (session as Session).user.id })
         .sort({ date: -1 })
         .toArray();
 
@@ -27,23 +24,20 @@ export async function GET(request: NextRequest) {
       }));
 
       return successResponse(entryDTOs);
-    })(request);
+    }, { session })(req);
   }, rateLimitConfig.journal);
 }
 
 export async function POST(request: NextRequest) {
-  return withRateLimit(request, async (req) => {
+  return withRateLimit(request, async (req, session) => {
     return withApiHandler(async (r) => {
-      const session = await getServerSession(authOptions);
       const body = await r.json();
-      
       const entry = CreateJournalEntrySchema.parse(body);
-      const client = await clientPromise;
-      const db = client.db('serene-mind');
+      const db = await getDatabase();
 
       const entryDoc = {
         ...entry,
-        userId: session!.user!.id,
+        userId: (session as Session).user.id,
         createdAt: new Date(),
       };
 
@@ -57,6 +51,6 @@ export async function POST(request: NextRequest) {
       };
 
       return successResponse(createdEntry, 201);
-    })(req);
+    }, { session })(req);
   }, rateLimitConfig.journal);
 }

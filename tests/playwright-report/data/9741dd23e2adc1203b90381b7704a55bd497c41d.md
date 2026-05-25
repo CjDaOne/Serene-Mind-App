@@ -1,0 +1,138 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - banner [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: SereneMind
+        - navigation [ref=e6]:
+          - link "Features" [ref=e7] [cursor=pointer]:
+            - /url: "#features"
+          - link "How It Works" [ref=e8] [cursor=pointer]:
+            - /url: "#how-it-works"
+          - link "Testimonials" [ref=e9] [cursor=pointer]:
+            - /url: "#testimonials"
+        - generic [ref=e10]:
+          - button "Try Demo" [disabled]:
+            - img
+            - text: Try Demo
+          - button "Login" [ref=e11] [cursor=pointer]
+    - main [ref=e12]:
+      - generic [ref=e14]:
+        - 'heading "Find Your Calm Productivity: Achieve More, Stress Less." [level=1] [ref=e15]':
+          - text: "Find Your Calm Productivity:"
+          - text: Achieve More, Stress Less.
+        - paragraph [ref=e16]:
+          - text: Discover a task manager designed for
+          - emphasis [ref=e17]: your
+          - text: pace, fostering emotional well-being without judgment or rigid demands.
+        - generic [ref=e18]:
+          - button "Get Started for Free" [ref=e19] [cursor=pointer]
+          - button "Try Demo First" [disabled]:
+            - img
+            - text: Try Demo First
+        - img "A serene, abstract image representing calm focus" [ref=e21]
+      - generic [ref=e23]:
+        - heading "The \"Why Us\"" [level=2] [ref=e25]
+        - generic [ref=e26]:
+          - generic [ref=e27]:
+            - heading "The Problem" [level=3] [ref=e28]
+            - paragraph [ref=e29]: Are you tired of productivity apps that feel like another source of stress? Do rigid checklists lead to task paralysis, overwhelming you with guilt when you miss a streak? Many tools push a 'hustle culture' that ignores the very real challenges of managing emotions, neurodivergence, or simply having an off day. It's hard to process feelings when you're constantly fighting against self-criticism and the pressure to 'do more, faster.'
+          - generic [ref=e30]:
+            - heading "Our Solution" [level=3] [ref=e31]
+            - paragraph [ref=e32]:
+              - text: Introducing
+              - strong [ref=e33]: SereneMind
+              - text: ": Your refreshing alternative. We believe well-being comes first. Our app provides a"
+              - strong [ref=e34]: gentle, non-punitive, and supportive framework
+              - text: that adapts to
+              - emphasis [ref=e35]: your
+              - text: life, not the other way around. We help you address your tasks and emotions with understanding, empowering you to build resilience and genuine growth, all built on your choices and without a hint of judgment.
+      - generic [ref=e37]:
+        - generic [ref=e38]:
+          - heading "Key Features" [level=2] [ref=e39]
+          - paragraph [ref=e40]: Everything you need for a gentler approach to productivity and well-being.
+        - generic [ref=e41]:
+          - generic [ref=e42]:
+            - generic [ref=e43]: ✓
+            - heading "Achieve Your Goals, Your Way." [level=3] [ref=e44]
+            - paragraph [ref=e45]: "Easily create tasks and break them down into manageable sub-tasks. Prioritize by importance and urgency, but here's the difference: there are no punitive streaks, 'failed' statuses, or guilt-inducing metrics."
+          - generic [ref=e46]:
+            - generic [ref=e47]: B
+            - heading "Understand Your Inner World." [level=3] [ref=e48]
+            - paragraph [ref=e49]: Take a simple mood check-in using intuitive emojis to quickly log how you're feeling. Our free-form journaling space is a safe, non-clinical environment for unburdened self-reflection.
+          - generic [ref=e50]:
+            - generic [ref=e51]: "*"
+            - heading "Celebrate Every Step Forward." [level=3] [ref=e52]
+            - paragraph [ref=e53]: "Experience our gentle gamified system: earn points for engaging with tasks and journaling. Unlock basic digital rewards and badges, acknowledging your progress. Crucially, we have ABSOLUTELY NO PUNITIVE STREAKS OR METRICS."
+          - generic [ref=e54]:
+            - generic [ref=e55]: "\""
+            - heading "Shift Your Self-Talk." [level=3] [ref=e56]
+            - paragraph [ref=e57]: Empower your mind daily with our curated library of positive affirmations. Designed to counter negative self-talk, promote self-belief, and offer gentle inspiration for your day.
+      - generic [ref=e59]:
+        - heading "How It Works" [level=2] [ref=e60]
+        - generic [ref=e61]:
+          - generic [ref=e62]:
+            - generic [ref=e63]: "1"
+            - heading "Check In & Plan Your Day" [level=3] [ref=e64]
+            - paragraph [ref=e65]: Begin by logging your mood and setting your tasks at your own pace.
+          - generic [ref=e66]:
+            - generic [ref=e67]: "2"
+            - heading "Reflect & Journal" [level=3] [ref=e68]
+            - paragraph [ref=e69]: Use our private space to reflect on your day and understand your emotions.
+          - generic [ref=e70]:
+            - generic [ref=e71]: "3"
+            - heading "Feel Supported & Grow" [level=3] [ref=e72]
+            - paragraph [ref=e73]: Celebrate your efforts with gentle rewards and daily affirmations, building resilience without pressure.
+      - generic [ref=e75]:
+        - heading "What Our Users Say" [level=2] [ref=e77]
+        - generic [ref=e78]:
+          - generic [ref=e79]:
+            - paragraph [ref=e80]: "\"Finally, a productivity app that doesn't make me feel guilty when my brain doesn't cooperate! It truly helps me manage my tasks and my mood without any judgment.\""
+            - paragraph [ref=e81]: "- A relieved user"
+          - generic [ref=e82]:
+            - paragraph [ref=e83]: "\"The most supportive app I've ever used for my mental well-being. It's gentle, effective, and actually helps me understand myself better.\""
+            - paragraph [ref=e84]: "- Someone finding peace"
+          - generic [ref=e85]:
+            - paragraph [ref=e86]: "\"This app understands that progress isn't always linear. It feels like a genuine partner in my wellness journey, not just another demanding tool.\""
+            - paragraph [ref=e87]: "- A user regaining control"
+      - generic [ref=e89]:
+        - heading "Ready to Experience Gentle Wellness?" [level=2] [ref=e90]
+        - paragraph [ref=e91]: Start your journey towards a more balanced and fulfilling life.
+        - generic [ref=e92]:
+          - button "Start Now!" [ref=e93] [cursor=pointer]
+          - button "Try Demo" [disabled]:
+            - img
+            - text: Try Demo
+      - generic [ref=e95]:
+        - heading "Our Commitment to You" [level=3] [ref=e96]
+        - paragraph [ref=e97]: At SereneMind, we are deeply committed to your well-being through thoughtful, accessible design. We believe that privacy is a fundamental right. We are transparent about our data collection and usage, ensuring your personal reflections and progress remain private and secure. Your journey is yours alone.
+    - contentinfo [ref=e98]:
+      - generic [ref=e99]:
+        - paragraph [ref=e100]: © 2024 SereneMind. All rights reserved.
+        - generic [ref=e101]:
+          - link "Privacy Policy" [ref=e102] [cursor=pointer]:
+            - /url: "#"
+          - link "Terms of Service" [ref=e103] [cursor=pointer]:
+            - /url: "#"
+          - link "App Support" [ref=e104] [cursor=pointer]:
+            - /url: "#"
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e110] [cursor=pointer]:
+    - img [ref=e111]
+  - alert [ref=e114]
+  - generic [ref=e118]:
+    - img [ref=e121]
+    - generic [ref=e124]:
+      - generic [ref=e125]:
+        - heading "Install SereneMind" [level=3] [ref=e126]
+        - paragraph [ref=e127]: Add to your home screen for quick access and offline support
+      - button "Install App" [disabled]:
+        - img
+        - text: Install App
+    - button "Dismiss" [ref=e128] [cursor=pointer]:
+      - img
+      - generic [ref=e129]: Dismiss
+```
