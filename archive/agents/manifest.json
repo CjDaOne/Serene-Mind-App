@@ -1,0 +1,50 @@
+{
+  "coreAgent": {
+    "name": "SereneMind-Core",
+    "role": "Oversees all subagents, merges results, reports actions.",
+    "subagents": ["DB-Agent", "Auth-Agent", "Data-Agent", "Docs-Agent"]
+  },
+  "subagents": [
+    {
+      "name": "DB-Agent",
+      "role": "Connects to MongoDB, validates API routes, ensures NextAuth adapter works",
+      "tasks": [
+        "Check MONGODB_URI environment variable",
+        "Create /lib/mongodb-connect.ts if missing",
+        "Validate /api/tasks routes",
+        "Test GET/POST functionality",
+        "Generate log report for Core Agent"
+      ]
+    },
+    {
+      "name": "Auth-Agent",
+      "role": "Re-enables session guards on protected routes",
+      "tasks": [
+        "Check all /app pages for auth bypass",
+        "Reinstate useSession and redirect logic",
+        "Report errors",
+        "Test authentication flow"
+      ]
+    },
+    {
+      "name": "Data-Agent",
+      "role": "Migrates mock Zustand stores to React Query hooks",
+      "tasks": [
+        "Scan /lib/store.ts for MOCK data",
+        "Generate React Query hooks skeleton",
+        "Validate hooks in sample component",
+        "Update store imports"
+      ]
+    },
+    {
+      "name": "Docs-Agent",
+      "role": "Updates README and Playbook automatically",
+      "tasks": [
+        "Scan for new files or APIs",
+        "Update Playbook with latest structure",
+        "Log all changes",
+        "Validate documentation accuracy"
+      ]
+    }
+  ]
+}

@@ -2,8 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ZodError } from 'zod';
+import type { Session } from 'next-auth';
 
-export type ApiSuccessResponse<T> = { data: T };
 export type ApiErrorResponse = {
   error: {
     code: string;
@@ -17,9 +17,13 @@ type ApiHandler = (
   context?: unknown
 ) => Promise<NextResponse>;
 
+/**
+ * @param preloadedSession — Pass when already fetched by withRateLimit to
+ *   avoid a redundant getServerSession round-trip.
+ */
 export function withApiHandler(
   handler: ApiHandler,
-  options: { requireAuth?: boolean } = { requireAuth: true }
+  options: { requireAuth?: boolean; session?: Session | null } = { requireAuth: true }
 ): ApiHandler {
   return async (request: NextRequest, context?: unknown) => {
     const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
@@ -29,60 +33,47 @@ export function withApiHandler(
       console.log(`[${requestId}] ${request.method} ${request.url}`);
 
       if (options.requireAuth !== false) {
-        const session = await getServerSession(authOptions);
+        const session =
+          options.session !== undefined
+            ? options.session
+            : await getServerSession(authOptions);
+
         if (!session?.user?.id) {
-          console.log(`[${requestId}] Unauthorized: No session`);
           return NextResponse.json<ApiErrorResponse>(
-            {
-              error: {
-                code: 'UNAUTHORIZED',
-                message: 'Authentication required',
-              },
-            },
+            { error: { code: 'UNAUTHORIZED', message: 'Authentication required' } },
             { status: 401 }
           );
         }
       }
 
       const response = await handler(request, context);
-
-      const duration = Date.now() - startTime;
-      console.log(`[${requestId}] Response: ${response.status} (${duration}ms)`);
-
+      console.log(`[${requestId}] ${response.status} (${Date.now() - startTime}ms)`);
       return response;
     } catch (error) {
-      const duration = Date.now() - startTime;
-
       if (error instanceof ZodError) {
-        console.error(`[${requestId}] Validation error (${duration}ms):`, error.issues);
         return NextResponse.json<ApiErrorResponse>(
-          {
-            error: {
-              code: 'VALIDATION_ERROR',
-              message: 'Invalid request data',
-              details: error.issues,
-            },
-          },
+          { error: { code: 'VALIDATION_ERROR', message: 'Invalid request data', details: error.issues } },
           { status: 400 }
         );
       }
-
-      console.error(`[${requestId}] Server error (${duration}ms):`, error);
+      console.error(`[${requestId}] Server error:`, error);
       return NextResponse.json<ApiErrorResponse>(
-        {
-          error: {
-            code: 'INTERNAL_SERVER_ERROR',
-            message: 'An unexpected error occurred',
-          },
-        },
+        { error: { code: 'INTERNAL_SERVER_ERROR', message: 'An unexpected error occurred' } },
         { status: 500 }
       );
     }
   };
 }
 
+/**
+ * Returns data directly — NOT wrapped in { data: T }.
+ *
+ * BUG FIX: The original wrapper returned { data: T } but ALL frontend
+ * components read response.json() directly as T. This meant every real-user
+ * API call was silently broken (guest/demo mode worked, masking the issue).
+ */
 export function successResponse<T>(data: T, status: number = 200): NextResponse {
-  return NextResponse.json<ApiSuccessResponse<T>>({ data }, { status });
+  return NextResponse.json(data, { status });
 }
 
 export function errorResponse(
@@ -92,13 +83,7 @@ export function errorResponse(
   details?: unknown
 ): NextResponse {
   return NextResponse.json<ApiErrorResponse>(
-    {
-      error: {
-        code,
-        message,
-        details,
-      },
-    },
+    { error: { code, message, details } },
     { status }
   );
 }

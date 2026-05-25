@@ -49,10 +49,12 @@ export const authOptions: AuthOptions = {
       name: 'Guest',
       credentials: {},
       async authorize() {
+        const guestId = crypto.randomUUID();
         return {
-          id: `guest-${crypto.randomUUID()}`,
+          id: `guest-${guestId}`,
           name: 'Guest User',
-          email: 'guest@example.com',
+          // Unique per session — prevents all guests sharing one rate-limit bucket
+          email: `guest-${guestId}@guest.local`,
           isGuest: true,
         };
       },

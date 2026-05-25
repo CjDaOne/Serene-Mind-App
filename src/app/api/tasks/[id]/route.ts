@@ -1,58 +1,71 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/lib/auth';
-import clientPromise from '@/lib/mongodb';
+import { NextRequest } from 'next/server';
+import { getDatabase } from '@/lib/db-init';
 import { ObjectId } from 'mongodb';
+import { withRateLimit } from '@/middleware/rate-limit-middleware';
+import { rateLimitConfig } from '@/lib/rate-limit';
 import { withApiHandler, successResponse, errorResponse } from '@/lib/api-handler';
+import type { Session } from 'next-auth';
+
+function parseObjectId(id: string): ObjectId | null {
+  if (!ObjectId.isValid(id)) return null;
+  return new ObjectId(id);
+}
 
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withApiHandler(async (req) => {
-    const session = await getServerSession(authOptions);
-    const { id } = await params;
-    const body = await req.json();
-    const client = await clientPromise;
-    const db = client.db('serene-mind');
+  return withRateLimit(request, async (req, session) => {
+    return withApiHandler(async (r) => {
+      const { id } = await params;
 
-    const result = await db.collection('tasks').updateOne(
-      { _id: new ObjectId(id), userId: session!.user!.id },
-      {
-        $set: {
-          ...body,
-          updatedAt: new Date(),
-        },
+      const objectId = parseObjectId(id);
+      if (!objectId) {
+        return errorResponse('INVALID_ID', 'Invalid task ID', 400);
       }
-    );
 
-    if (result.matchedCount === 0) {
-      return errorResponse('NOT_FOUND', 'Task not found', 404);
-    }
+      const body = await r.json();
+      const db = await getDatabase();
 
-    return successResponse({ success: true });
-  })(request);
+      const result = await db.collection('tasks').updateOne(
+        { _id: objectId, userId: (session as Session).user.id },
+        { $set: { ...body, updatedAt: new Date() } }
+      );
+
+      if (result.matchedCount === 0) {
+        return errorResponse('NOT_FOUND', 'Task not found', 404);
+      }
+
+      return successResponse({ success: true });
+    }, { session })(req);
+  }, rateLimitConfig.tasks);
 }
 
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  return withApiHandler(async (req) => {
-    const session = await getServerSession(authOptions);
-    const { id } = await params;
-    const client = await clientPromise;
-    const db = client.db('serene-mind');
+  return withRateLimit(request, async (req, session) => {
+    return withApiHandler(async (r) => {
+      const { id } = await params;
 
-    const result = await db.collection('tasks').deleteOne({
-      _id: new ObjectId(id),
-      userId: session!.user!.id,
-    });
+      const objectId = parseObjectId(id);
+      if (!objectId) {
+        return errorResponse('INVALID_ID', 'Invalid task ID', 400);
+      }
 
-    if (result.deletedCount === 0) {
-      return errorResponse('NOT_FOUND', 'Task not found', 404);
-    }
+      const db = await getDatabase();
 
-    return successResponse({ success: true });
-  })(request);
+      const result = await db.collection('tasks').deleteOne({
+        _id: objectId,
+        userId: (session as Session).user.id,
+      });
+
+      if (result.deletedCount === 0) {
+        return errorResponse('NOT_FOUND', 'Task not found', 404);
+      }
+
+      return successResponse({ success: true });
+    }, { session })(req);
+  }, rateLimitConfig.tasks);
 }

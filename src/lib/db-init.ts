@@ -5,11 +5,8 @@ export async function initializeDatabase(): Promise<Db> {
   try {
     const client: MongoClient = await clientPromise;
     const db = client.db(dbName);
-
     console.log(`Connected to database: ${dbName}`);
-
     await createIndexes(db);
-
     return db;
   } catch (error) {
     console.error('Database initialization error:', error);
@@ -19,27 +16,28 @@ export async function initializeDatabase(): Promise<Db> {
 
 async function createIndexes(db: Db): Promise<void> {
   try {
-    const tasksCollection = db.collection('tasks');
-    await tasksCollection.createIndex(
+    await db.collection('tasks').createIndex(
       { userId: 1, createdAt: -1 },
       { name: 'userId_createdAt_idx', background: true }
     );
-    console.log('✓ Created index: tasks.userId_createdAt');
 
-    const journalCollection = db.collection('journal');
-    await journalCollection.createIndex(
+    await db.collection('journal').createIndex(
       { userId: 1, date: -1 },
       { name: 'userId_date_idx', background: true }
     );
-    console.log('✓ Created index: journal.userId_date');
 
-    const rewardsCollection = db.collection('rewards');
-    await rewardsCollection.createIndex(
+    await db.collection('rewards').createIndex(
       { userId: 1 },
       { name: 'userId_idx', background: true }
     );
-    console.log('✓ Created index: rewards.userId');
 
+    // Stores lastActiveAt + currentMode — keyed by userId, unique
+    await db.collection('user_preferences').createIndex(
+      { userId: 1 },
+      { name: 'user_prefs_userId_idx', unique: true, background: true }
+    );
+
+    console.log('✓ Indexes verified');
   } catch (error) {
     if ((error as { code?: number }).code === 85) {
       console.log('Indexes already exist, skipping...');
